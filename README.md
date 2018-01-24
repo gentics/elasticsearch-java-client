@@ -1,6 +1,6 @@
 # Minimalistic Elasticsearch Java Client
 
-The aim of this project is to provide an alternative java REST client for elasticsearch.
+The aim of this project is to provide an alternative Java REST client for elasticsearch.
 
 This client is model agnostic and thus does not provide any models. Use the [high level REST client](https://www.elastic.co/guide/en/elasticsearch/client/java-rest/master/java-rest-high.html) if you need those models.
 
@@ -36,7 +36,8 @@ assertEquals("value1", doc.getJsonObject("_source").getString("key1"));
 
 ## TODOs
 
-* Scroll API support
+* Add Scroll API support 
+* Add additional search API calls
 * Better error handling
 * Support for multiple ES instances
 * More tests

@@ -1,12 +1,12 @@
-package com.gentics.elasticsearch;
+package com.gentics.elasticsearch.client;
 
 import java.io.IOException;
 import java.util.Objects;
 import java.util.function.Function;
 
-import com.gentics.elasticsearch.methods.DocumentMethods;
-import com.gentics.elasticsearch.methods.IndexMethods;
-import com.gentics.elasticsearch.methods.SearchMethods;
+import com.gentics.elasticsearch.client.methods.DocumentMethods;
+import com.gentics.elasticsearch.client.methods.IndexMethods;
+import com.gentics.elasticsearch.client.methods.SearchMethods;
 
 import io.reactivex.Single;
 import okhttp3.Call;
@@ -20,9 +20,10 @@ import okhttp3.Response;
 import okhttp3.ResponseBody;
 
 /**
- * Minimalistic Elasticsearch REST client.
+ * Minimal Elasticsearch REST client.
  * 
  * @param <T>
+ *            Response and request type
  */
 public class Client<T> implements SearchMethods<T>, IndexMethods<T>, DocumentMethods<T> {
 
@@ -36,6 +37,16 @@ public class Client<T> implements SearchMethods<T>, IndexMethods<T>, DocumentMet
 
 	private Function<String, T> parser;
 
+	/**
+	 * Create a new client.
+	 * 
+	 * @param scheme
+	 *            Protocol scheme
+	 * @param hostname
+	 *            Server hostname
+	 * @param port
+	 *            Server port
+	 */
 	public Client(String scheme, String hostname, int port) {
 		this.scheme = scheme;
 		this.port = port;
@@ -43,16 +54,26 @@ public class Client<T> implements SearchMethods<T>, IndexMethods<T>, DocumentMet
 	}
 
 	/**
-	 * Set the converter which will be used transform the response body to T
+	 * Return the used OK http client.
+	 * 
+	 * @return
+	 */
+	public OkHttpClient getOkHttpClient() {
+		return client;
+	}
+
+	/**
+	 * Set the converter which will be used transform the response body to T.
 	 * 
 	 * @param parser
+	 *            Parser function for input strings
 	 */
 	public void setConverterFunction(Function<String, T> parser) {
 		this.parser = parser;
 	}
 
 	@Override
-	public T action(String method, String path, T json) throws IOException {
+	public T action(String method, String path, T json) throws HttpErrorException {
 		HttpUrl url = new HttpUrl.Builder().scheme(scheme).host(hostname).port(port).addPathSegments(path).build();
 		RequestBody body = null;
 		if (json != null) {
@@ -77,22 +98,27 @@ public class Client<T> implements SearchMethods<T>, IndexMethods<T>, DocumentMet
 	 * Execute the request synchronously.
 	 * 
 	 * @param request
-	 * @return
-	 * @throws JsonSyntaxException
-	 * @throws IOException
+	 * @return Parsed response object
+	 * @throws HttpErrorException
 	 */
-	protected T executeSync(Request request) throws IOException {
+	protected T executeSync(Request request) throws HttpErrorException {
 		try (Response response = client.newCall(request).execute()) {
 			ResponseBody body = response.body();
 			String bodyStr = "";
 			if (body != null) {
-				bodyStr = body.string();
+				try {
+					bodyStr = body.string();
+				} catch (Exception e) {
+					throw new HttpErrorException("Error while reading body", e);
+				}
 			}
 			if (!response.isSuccessful()) {
-				throw new IOException("Unexpected code " + response + " body {" + bodyStr + "}");
+				throw new HttpErrorException("Request failed {" + response.message() + "}", response.code(), bodyStr);
 			}
 			Objects.requireNonNull(parser, "No body parser was configured.");
 			return parser.apply(bodyStr);
+		} catch (IOException e1) {
+			throw new HttpErrorException("Error while excuting request", e1);
 		}
 	}
 
@@ -104,23 +130,29 @@ public class Client<T> implements SearchMethods<T>, IndexMethods<T>, DocumentMet
 	 */
 	protected Single<T> executeAsync(Request request) {
 		return Single.create(sub -> {
-
-			client.newCall(request).enqueue(new Callback() {
+			Call call = client.newCall(request);
+			sub.setCancellable(call::cancel);
+			call.enqueue(new Callback() {
 				@Override
 				public void onFailure(Call call, IOException e) {
 					sub.onError(e);
 				}
 
 				@Override
-				public void onResponse(Call call, Response response) throws IOException {
+				public void onResponse(Call call, Response response) {
 					try (ResponseBody responseBody = response.body()) {
 						ResponseBody body = response.body();
 						String bodyStr = "";
 						if (body != null) {
-							bodyStr = body.string();
+							try {
+								bodyStr = body.string();
+							} catch (Exception e) {
+								sub.onError(new HttpErrorException("Error while reading body", e));
+								return;
+							}
 						}
 						if (!response.isSuccessful()) {
-							sub.onError(new IOException("Unexpected code " + response + " body {" + bodyStr + "}"));
+							sub.onError(new HttpErrorException("Request failed {" + response.message() + "}", response.code(), bodyStr));
 							return;
 						}
 						Objects.requireNonNull(parser, "No body parser was configured.");

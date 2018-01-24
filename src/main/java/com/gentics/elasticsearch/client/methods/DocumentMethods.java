@@ -1,13 +1,20 @@
-package com.gentics.elasticsearch.methods;
+package com.gentics.elasticsearch.client.methods;
 
-import java.io.IOException;
 import java.util.Objects;
+
+import com.gentics.elasticsearch.client.HttpErrorException;
 
 import io.reactivex.Single;
 
+/**
+ * Document API related methods.
+ *
+ * @param <T>
+ *            Response and body type
+ */
 public interface DocumentMethods<T> extends HTTPMethods<T> {
 
-	default T storeDocument(String indexName, String type, String id, T json) throws IOException {
+	default T storeDocument(String indexName, String type, String id, T json) throws HttpErrorException {
 		Objects.requireNonNull("The indexName must be specified.", indexName);
 		Objects.requireNonNull("The index type must be specified.", type);
 		Objects.requireNonNull("The document id must be specified.", id);
@@ -21,7 +28,7 @@ public interface DocumentMethods<T> extends HTTPMethods<T> {
 		return putAsync(indexName + "/" + type + "/" + id, json);
 	}
 
-	default T deleteDocument(String indexName, String type, String id) throws IOException {
+	default T deleteDocument(String indexName, String type, String id) throws HttpErrorException {
 		Objects.requireNonNull("The indexName must be specified.", indexName);
 		Objects.requireNonNull("The index type must be specified.", type);
 		Objects.requireNonNull("The document id must be specified.", id);
@@ -35,7 +42,7 @@ public interface DocumentMethods<T> extends HTTPMethods<T> {
 		return deleteAsync(indexName + "/" + type + "/" + id);
 	}
 
-	default T updateDocument(String indexName, String type, String id, T json) throws IOException {
+	default T updateDocument(String indexName, String type, String id, T json) throws HttpErrorException {
 		Objects.requireNonNull("The indexName must be specified.", indexName);
 		Objects.requireNonNull("The index type must be specified.", type);
 		Objects.requireNonNull("The document id must be specified.", id);
@@ -49,7 +56,7 @@ public interface DocumentMethods<T> extends HTTPMethods<T> {
 		return putAsync(indexName + "/" + type + "/" + id, json);
 	}
 
-	default T readDocument(String indexName, String type, String id) throws IOException {
+	default T readDocument(String indexName, String type, String id) throws HttpErrorException {
 		Objects.requireNonNull("The indexName must be specified.", indexName);
 		Objects.requireNonNull("The index type must be specified.", type);
 		Objects.requireNonNull("The document id must be specified.", id);

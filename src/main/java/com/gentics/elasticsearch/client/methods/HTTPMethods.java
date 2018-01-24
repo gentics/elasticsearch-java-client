@@ -1,6 +1,6 @@
-package com.gentics.elasticsearch.methods;
+package com.gentics.elasticsearch.client.methods;
 
-import java.io.IOException;
+import com.gentics.elasticsearch.client.HttpErrorException;
 
 import io.reactivex.Single;
 
@@ -21,9 +21,9 @@ public interface HTTPMethods<T> {
 	 * @param json
 	 *            Body data or null if no body should be send
 	 * @return
-	 * @throws IOException
+	 * @throws HttpErrorException
 	 */
-	T action(String method, String path, T json) throws IOException;
+	T action(String method, String path, T json) throws HttpErrorException;
 
 	/**
 	 * Send the given request to the server (Asynchronously).
@@ -38,7 +38,7 @@ public interface HTTPMethods<T> {
 	 */
 	Single<T> actionAsync(String method, String path, T json);
 
-	default T put(String path, T json) throws IOException {
+	default T put(String path, T json) throws HttpErrorException {
 		return action(PUT, path, json);
 	}
 
@@ -46,7 +46,7 @@ public interface HTTPMethods<T> {
 		return actionAsync(PUT, path, json);
 	}
 
-	default T delete(String path) throws IOException {
+	default T delete(String path) throws HttpErrorException {
 		return action(DELETE, path, null);
 	}
 
@@ -54,11 +54,11 @@ public interface HTTPMethods<T> {
 		return actionAsync(DELETE, path, null);
 	}
 
-	default T get(String path) throws IOException {
+	default T get(String path) throws HttpErrorException {
 		return action(GET, path, null);
 	}
 
-	default T get(String path, T json) throws IOException {
+	default T get(String path, T json) throws HttpErrorException {
 		return action(GET, path, json);
 	}
 
@@ -70,7 +70,7 @@ public interface HTTPMethods<T> {
 		return actionAsync(GET, path, json);
 	}
 
-	default T post(String path, T json) throws IOException {
+	default T post(String path, T json) throws HttpErrorException {
 		return action(POST, path, json);
 	}
 

@@ -1,9 +1,11 @@
-package com.gentics.elasticsearch.methods;
+package com.gentics.elasticsearch.client.methods;
 
 import java.io.IOException;
 import java.util.Objects;
 
 import org.apache.commons.lang3.StringUtils;
+
+import com.gentics.elasticsearch.client.HttpErrorException;
 
 import io.reactivex.Single;
 
@@ -11,6 +13,7 @@ import io.reactivex.Single;
  * API methods which are used to interact with indices.
  * 
  * @param <T>
+ *            Response and Body type
  */
 public interface IndexMethods<T> extends HTTPMethods<T> {
 
@@ -21,7 +24,7 @@ public interface IndexMethods<T> extends HTTPMethods<T> {
 	 * @return
 	 * @throws IOException
 	 */
-	default T deleteIndex(String indexName) throws IOException {
+	default T deleteIndex(String indexName) throws HttpErrorException {
 		return delete(indexName);
 	}
 
@@ -43,7 +46,7 @@ public interface IndexMethods<T> extends HTTPMethods<T> {
 	 * @return
 	 * @throws IOException
 	 */
-	default T createIndex(String indexName, T json) throws IOException {
+	default T createIndex(String indexName, T json) throws HttpErrorException {
 		return put(indexName, json);
 	}
 
@@ -65,7 +68,7 @@ public interface IndexMethods<T> extends HTTPMethods<T> {
 	 * @return
 	 * @throws IOException
 	 */
-	default T readIndex(String... indices) throws IOException {
+	default T readIndex(String... indices) throws HttpErrorException {
 		String indicesStr = StringUtils.join(indices, ",");
 		return get("/" + indicesStr);
 	}
@@ -112,7 +115,7 @@ public interface IndexMethods<T> extends HTTPMethods<T> {
 		return getAsync(path);
 	}
 
-	default T createIndexTemplate(String templateName, T json) throws IOException {
+	default T createIndexTemplate(String templateName, T json) throws HttpErrorException {
 		return put("/_template/" + templateName, json);
 	}
 
@@ -121,7 +124,7 @@ public interface IndexMethods<T> extends HTTPMethods<T> {
 		return putAsync("/_template/" + templateName, json);
 	}
 
-	default T deleteIndexTemplate(String templateName) throws IOException {
+	default T deleteIndexTemplate(String templateName) throws HttpErrorException {
 		Objects.requireNonNull(templateName, "A template name must be provided.");
 		return delete("/_template/" + templateName);
 	}
