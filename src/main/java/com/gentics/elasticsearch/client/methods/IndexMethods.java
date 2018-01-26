@@ -18,24 +18,26 @@ import io.reactivex.Single;
 public interface IndexMethods<T> extends HTTPMethods<T> {
 
 	/**
-	 * Delete the given index.
+	 * Delete the indices with the given names.
 	 * 
-	 * @param indexName
+	 * @param indexNames
 	 * @return
 	 * @throws IOException
 	 */
-	default T deleteIndex(String indexName) throws HttpErrorException {
-		return delete(indexName);
+	default T deleteIndex(String... indexNames) throws HttpErrorException {
+		String indicesStr = StringUtils.join(indexNames, ",");
+		return delete(indicesStr);
 	}
 
 	/**
-	 * Delete the index with the given name.
+	 * Delete the indices with the given names.
 	 * 
-	 * @param indexName
+	 * @param indexNames
 	 * @return
 	 */
-	default Single<T> deleteIndexAsync(String indexName) {
-		return deleteAsync(indexName);
+	default Single<T> deleteIndexAsync(String... indexNames) {
+		String indicesStr = StringUtils.join(indexNames, ",");
+		return deleteAsync(indicesStr);
 	}
 
 	/**

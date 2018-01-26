@@ -2,11 +2,6 @@ package com.gentics.elasticsearch.client;
 
 import java.io.IOException;
 import java.util.Objects;
-import java.util.function.Function;
-
-import com.gentics.elasticsearch.client.methods.DocumentMethods;
-import com.gentics.elasticsearch.client.methods.IndexMethods;
-import com.gentics.elasticsearch.client.methods.SearchMethods;
 
 import io.reactivex.Single;
 import okhttp3.Call;
@@ -25,17 +20,11 @@ import okhttp3.ResponseBody;
  * @param <T>
  *            Response and request type
  */
-public class Client<T> implements SearchMethods<T>, IndexMethods<T>, DocumentMethods<T> {
+public class ElasticsearchOkClient<T> extends AbstractElasticsearchClient<T> {
 
 	private final OkHttpClient client = new OkHttpClient();
 
 	public static final MediaType MEDIA_TYPE_JSON = MediaType.parse("application/json; charset=utf-8");
-
-	private int port;
-	private String hostname;
-	private String scheme;
-
-	private Function<String, T> parser;
 
 	/**
 	 * Create a new client.
@@ -47,14 +36,12 @@ public class Client<T> implements SearchMethods<T>, IndexMethods<T>, DocumentMet
 	 * @param port
 	 *            Server port
 	 */
-	public Client(String scheme, String hostname, int port) {
-		this.scheme = scheme;
-		this.port = port;
-		this.hostname = hostname;
+	public ElasticsearchOkClient(String scheme, String hostname, int port) {
+		super(scheme, hostname, port);
 	}
 
 	/**
-	 * Return the used OK http client.
+	 * Return the used OK HTTP client.
 	 * 
 	 * @return
 	 */
@@ -62,14 +49,9 @@ public class Client<T> implements SearchMethods<T>, IndexMethods<T>, DocumentMet
 		return client;
 	}
 
-	/**
-	 * Set the converter which will be used transform the response body to T.
-	 * 
-	 * @param parser
-	 *            Parser function for input strings
-	 */
-	public void setConverterFunction(Function<String, T> parser) {
-		this.parser = parser;
+	@Override
+	public void close() {
+		// Not needed for OkClient
 	}
 
 	@Override

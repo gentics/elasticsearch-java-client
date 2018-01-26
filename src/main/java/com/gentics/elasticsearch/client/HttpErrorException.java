@@ -29,4 +29,8 @@ public class HttpErrorException extends Exception {
 		return statusCode;
 	}
 
+	public <T> T getBodyObject() {
+		return null;
+	}
+
 }

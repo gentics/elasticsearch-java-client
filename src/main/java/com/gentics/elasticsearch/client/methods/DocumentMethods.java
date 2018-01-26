@@ -5,6 +5,7 @@ import java.util.Objects;
 import com.gentics.elasticsearch.client.HttpErrorException;
 
 import io.reactivex.Single;
+import io.vertx.core.json.JsonObject;
 
 /**
  * Document API related methods.
@@ -26,6 +27,28 @@ public interface DocumentMethods<T> extends HTTPMethods<T> {
 		Objects.requireNonNull("The index type must be specified.", type);
 		Objects.requireNonNull("The document id must be specified.", id);
 		return putAsync(indexName + "/" + type + "/" + id, json);
+	}
+
+	default T storeDocumentBulk(T bulkData) throws HttpErrorException {
+		return post("_bulk", bulkData);
+	}
+
+	default Single<T> storeDocumentBulkAsync(T bulkData) {
+		return postAsync("_bulk", bulkData);
+	}
+
+	default T getDocument(String indexName, String type, String id) throws HttpErrorException {
+		Objects.requireNonNull("The indexName must be specified.", indexName);
+		Objects.requireNonNull("The index type must be specified.", type);
+		Objects.requireNonNull("The document id must be specified.", id);
+		return get(indexName + "/" + type + "/" + id);
+	}
+
+	default Single<T> getDocumentAsync(String indexName, String type, String id) {
+		Objects.requireNonNull("The indexName must be specified.", indexName);
+		Objects.requireNonNull("The index type must be specified.", type);
+		Objects.requireNonNull("The document id must be specified.", id);
+		return getAsync(indexName + "/" + type + "/" + id);
 	}
 
 	default T deleteDocument(String indexName, String type, String id) throws HttpErrorException {

@@ -7,7 +7,7 @@ import org.junit.Test;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.wait.Wait;
 
-import com.gentics.elasticsearch.client.Client;
+import com.gentics.elasticsearch.client.ElasticsearchOkClient;
 import com.gentics.elasticsearch.client.HttpErrorException;
 
 import io.vertx.core.json.JsonObject;
@@ -20,7 +20,7 @@ public class IndexMethodsTest {
 
 	@Test
 	public void testIndexCreate() throws HttpErrorException {
-		Client<JsonObject> client = new Client<>("http", "localhost", elasticsearch.getMappedPort(9200));
+		ElasticsearchOkClient<JsonObject> client = new ElasticsearchOkClient<>("http", "localhost", elasticsearch.getMappedPort(9200));
 		client.setConverterFunction(JsonObject::new);
 
 		JsonObject response = client.createIndex("blub", new JsonObject());
