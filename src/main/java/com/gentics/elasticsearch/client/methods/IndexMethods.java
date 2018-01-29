@@ -59,7 +59,7 @@ public interface IndexMethods<T> extends HTTPMethods<T> {
 		if (indices.length > 0) {
 			path = indicesStr + "/_refresh";
 		}
-		return deleteBuilder(path);
+		return getBuilder(path);
 	}
 
 	default RequestBuilder<T> createIndexTemplate(String templateName, T json) {

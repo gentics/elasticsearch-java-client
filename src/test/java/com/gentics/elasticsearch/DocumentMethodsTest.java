@@ -17,8 +17,10 @@ import io.vertx.core.json.JsonObject;
 public class DocumentMethodsTest {
 
 	@ClassRule
-	public static GenericContainer<?> elasticsearch = new GenericContainer<>("docker.elastic.co/elasticsearch/elasticsearch:6.1.2").withEnv(
-			"discovery.type", "single-node").withExposedPorts(9200).waitingFor(Wait.forHttp("/"));
+	public static GenericContainer<?> elasticsearch = new GenericContainer<>("docker.elastic.co/elasticsearch/elasticsearch:6.1.2")
+		.withEnv("discovery.type", "single-node")
+		.withExposedPorts(9200)
+		.waitingFor(Wait.forHttp("/"));
 
 	@Test
 	public void testDocumentCreate() throws HttpErrorException {
@@ -38,10 +40,8 @@ public class DocumentMethodsTest {
 		client.setConverterFunction(JsonObject::new);
 
 		JsonObject doc = client.createIndex("dummy", new JsonObject()).async().toCompletable()
-
-				.andThen(client.storeDocument("blub", "default", "one", new JsonObject().put("key1", "value1")).async().toCompletable())
-
-				.andThen(client.readDocument("blub", "default", "one").async()).blockingGet();
+			.andThen(client.storeDocument("blub", "default", "one", new JsonObject().put("key1", "value1")).async().toCompletable())
+			.andThen(client.readDocument("blub", "default", "one").async()).blockingGet();
 
 		assertEquals("value1", doc.getJsonObject("_source").getString("key1"));
 	}

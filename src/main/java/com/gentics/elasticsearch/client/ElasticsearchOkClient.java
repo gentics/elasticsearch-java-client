@@ -6,12 +6,8 @@ import java.util.Objects;
 import io.reactivex.Single;
 import okhttp3.Call;
 import okhttp3.Callback;
-import okhttp3.HttpUrl;
-import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
-import okhttp3.Request.Builder;
-import okhttp3.RequestBody;
 import okhttp3.Response;
 import okhttp3.ResponseBody;
 
@@ -24,8 +20,6 @@ import okhttp3.ResponseBody;
 public class ElasticsearchOkClient<T> extends AbstractElasticsearchClient<T> {
 
 	private final OkHttpClient client;
-
-	public static final MediaType MEDIA_TYPE_JSON = MediaType.parse("application/json; charset=utf-8");
 
 	/**
 	 * Create a new client.
@@ -76,24 +70,7 @@ public class ElasticsearchOkClient<T> extends AbstractElasticsearchClient<T> {
 
 	@Override
 	public RequestBuilder<T> actionBuilder(String method, String path, T json) {
-		HttpUrl url = new HttpUrl.Builder().scheme(scheme).host(hostname).port(port).addPathSegments(path).build();
-		RequestBody body = null;
-		if (json != null) {
-			body = RequestBody.create(MEDIA_TYPE_JSON, json.toString());
-		}
-		Builder builder = new Request.Builder().url(url).method(method, body);
-		return new RequestBuilder<>(builder, this);
-	}
-
-	@Override
-	public Single<T> actionAsync(String method, String path, T json) {
-		HttpUrl url = new HttpUrl.Builder().scheme(scheme).host(hostname).port(port).addPathSegments(path).build();
-		RequestBody body = null;
-		if (json != null) {
-			body = RequestBody.create(MEDIA_TYPE_JSON, json.toString());
-		}
-		Request request = new Request.Builder().url(url).method(method, body).build();
-		return executeAsync(request);
+		return new RequestBuilder<>(method, path, json, this);
 	}
 
 	/**

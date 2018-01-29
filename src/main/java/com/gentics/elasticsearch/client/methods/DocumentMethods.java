@@ -2,7 +2,6 @@ package com.gentics.elasticsearch.client.methods;
 
 import java.util.Objects;
 
-import com.gentics.elasticsearch.client.HttpErrorException;
 import com.gentics.elasticsearch.client.RequestBuilder;
 
 /**
@@ -20,7 +19,7 @@ public interface DocumentMethods<T> extends HTTPMethods<T> {
 		return putBuilder(indexName + "/" + type + "/" + id, json);
 	}
 
-	default RequestBuilder<T> storeDocumentBulk(T bulkData) throws HttpErrorException {
+	default RequestBuilder<T> storeDocumentBulk(T bulkData) {
 		return postBuilder("_bulk", bulkData);
 	}
 

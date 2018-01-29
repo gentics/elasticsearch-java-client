@@ -30,4 +30,16 @@ public abstract class AbstractElasticsearchClient<T> implements ElasticsearchCli
 		this.parser = parser;
 	}
 
+	public int getPort() {
+		return port;
+	}
+
+	public String getScheme() {
+		return scheme;
+	}
+
+	public String getHostname() {
+		return hostname;
+	}
+
 }

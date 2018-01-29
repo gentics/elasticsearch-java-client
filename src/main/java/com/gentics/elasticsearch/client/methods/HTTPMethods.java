@@ -2,8 +2,6 @@ package com.gentics.elasticsearch.client.methods;
 
 import com.gentics.elasticsearch.client.RequestBuilder;
 
-import io.reactivex.Single;
-
 public interface HTTPMethods<T> {
 
 	static final String PUT = "PUT";
@@ -23,19 +21,6 @@ public interface HTTPMethods<T> {
 	 * @return Created builder
 	 */
 	RequestBuilder<T> actionBuilder(String method, String path, T json);
-
-	/**
-	 * Send the given request to the server (Asynchronously).
-	 * 
-	 * @param method
-	 *            Http method
-	 * @param path
-	 *            Request path
-	 * @param json
-	 *            Body data or null if no body should be send
-	 * @return
-	 */
-	Single<T> actionAsync(String method, String path, T json);
 
 	default RequestBuilder<T> putBuilder(String path, T json) {
 		return actionBuilder(PUT, path, json);
