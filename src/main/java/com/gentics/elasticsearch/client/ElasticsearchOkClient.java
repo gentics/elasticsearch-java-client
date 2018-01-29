@@ -3,16 +3,14 @@ package com.gentics.elasticsearch.client;
 import java.io.IOException;
 import java.util.Objects;
 
-import org.apache.commons.logging.Log;
-
 import io.reactivex.Single;
 import okhttp3.Call;
 import okhttp3.Callback;
 import okhttp3.HttpUrl;
 import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
-import okhttp3.OkHttpClient.Builder;
 import okhttp3.Request;
+import okhttp3.Request.Builder;
 import okhttp3.RequestBody;
 import okhttp3.Response;
 import okhttp3.ResponseBody;
@@ -45,7 +43,7 @@ public class ElasticsearchOkClient<T> extends AbstractElasticsearchClient<T> {
 	}
 
 	private OkHttpClient createClient() {
-		Builder builder = new OkHttpClient.Builder();
+		okhttp3.OkHttpClient.Builder builder = new OkHttpClient.Builder();
 
 		// Disable gzip
 		builder.addInterceptor(chain -> {
@@ -77,14 +75,14 @@ public class ElasticsearchOkClient<T> extends AbstractElasticsearchClient<T> {
 	}
 
 	@Override
-	public T action(String method, String path, T json) throws HttpErrorException {
+	public RequestBuilder<T> actionBuilder(String method, String path, T json) {
 		HttpUrl url = new HttpUrl.Builder().scheme(scheme).host(hostname).port(port).addPathSegments(path).build();
 		RequestBody body = null;
 		if (json != null) {
 			body = RequestBody.create(MEDIA_TYPE_JSON, json.toString());
 		}
-		Request request = new Request.Builder().url(url).method(method, body).build();
-		return executeSync(request);
+		Builder builder = new Request.Builder().url(url).method(method, body);
+		return new RequestBuilder<>(builder, this);
 	}
 
 	@Override
@@ -105,7 +103,7 @@ public class ElasticsearchOkClient<T> extends AbstractElasticsearchClient<T> {
 	 * @return Parsed response object
 	 * @throws HttpErrorException
 	 */
-	protected T executeSync(Request request) throws HttpErrorException {
+	public T executeSync(Request request) throws HttpErrorException {
 		try (Response response = client.newCall(request).execute()) {
 			ResponseBody body = response.body();
 			String bodyStr = "";
@@ -132,7 +130,7 @@ public class ElasticsearchOkClient<T> extends AbstractElasticsearchClient<T> {
 	 * @param request
 	 * @return Single which yields the response data
 	 */
-	protected Single<T> executeAsync(Request request) {
+	public Single<T> executeAsync(Request request) {
 		return Single.create(sub -> {
 			Call call = client.newCall(request);
 			sub.setCancellable(call::cancel);
@@ -165,6 +163,6 @@ public class ElasticsearchOkClient<T> extends AbstractElasticsearchClient<T> {
 				}
 			});
 		});
-
 	}
+
 }

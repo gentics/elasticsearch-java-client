@@ -23,10 +23,10 @@ public class IndexMethodsTest {
 		ElasticsearchOkClient<JsonObject> client = new ElasticsearchOkClient<>("http", "localhost", elasticsearch.getMappedPort(9200));
 		client.setConverterFunction(JsonObject::new);
 
-		JsonObject response = client.createIndex("blub", new JsonObject());
+		JsonObject response = client.createIndex("blub", new JsonObject()).sync();
 		assertTrue(response.getBoolean("acknowledged"));
 
-		JsonObject response2 = client.deleteIndex("blub");
+		JsonObject response2 = client.deleteIndex("blub").sync();
 		assertTrue(response2.getBoolean("acknowledged"));
 	}
 }

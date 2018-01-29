@@ -1,8 +1,7 @@
 package com.gentics.elasticsearch.client.methods;
 
 import com.gentics.elasticsearch.client.HttpErrorException;
-
-import io.reactivex.Single;
+import com.gentics.elasticsearch.client.RequestBuilder;
 
 /**
  * Info API related methods.
@@ -12,19 +11,12 @@ import io.reactivex.Single;
  */
 public interface InfoMethods<T> extends HTTPMethods<T> {
 
-	default T info() throws HttpErrorException {
-		return get("");
+	default RequestBuilder<T> info() throws HttpErrorException {
+		return getBuilder("");
 	}
 
-	default Single<T> infoAsync() {
-		return getAsync("");
+	default RequestBuilder<T> clusterHealth() throws HttpErrorException {
+		return getBuilder("_cluster/health");
 	}
 
-	default T clusterHealth() throws HttpErrorException {
-		return get("_cluster/health");
-	}
-
-	default Single<T> clusterHealthAsync() {
-		return getAsync("_cluster/health");
-	}
 }
