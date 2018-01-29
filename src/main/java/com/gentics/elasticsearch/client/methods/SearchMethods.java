@@ -1,11 +1,12 @@
 package com.gentics.elasticsearch.client.methods;
 
+import java.util.List;
+
 import org.apache.commons.lang3.StringUtils;
 
 import com.gentics.elasticsearch.client.HttpErrorException;
 
 import io.reactivex.Single;
-import io.vertx.core.json.JsonObject;
 
 /**
  * Search API related methods.
@@ -14,6 +15,10 @@ import io.vertx.core.json.JsonObject;
  *            Response and body type
  */
 public interface SearchMethods<T> extends HTTPMethods<T> {
+
+	default T query(T query, List<String> indices) throws HttpErrorException {
+		return query(query, indices.toArray(new String[indices.size()]));
+	}
 
 	default T query(T query, String... indices) throws HttpErrorException {
 		String indicesStr = StringUtils.join(indices, ",");
@@ -27,7 +32,7 @@ public interface SearchMethods<T> extends HTTPMethods<T> {
 		return getAsync(path, query);
 	}
 
-	default T queryScroll(T request) throws HttpErrorException {
+	default T queryScroll(T request, List<String> indices) throws HttpErrorException {
 		return post("_search", request);
 	}
 

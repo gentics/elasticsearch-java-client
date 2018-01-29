@@ -1,5 +1,7 @@
 package com.gentics.elasticsearch.client;
 
+import java.util.function.Function;
+
 /**
  * Exception which is also used to return non-200 error responses.
  */
@@ -21,16 +23,38 @@ public class HttpErrorException extends Exception {
 		super(message, e);
 	}
 
+	/**
+	 * Returns the error response body.
+	 * 
+	 * @return
+	 */
 	public String getBody() {
 		return body;
 	}
 
+	/**
+	 * Returns the error HTTTP status code.
+	 * 
+	 * @return
+	 */
 	public int getStatusCode() {
 		return statusCode;
 	}
 
-	public <T> T getBodyObject() {
-		return null;
+	/**
+	 * Transform the body string into the object of choice.
+	 * 
+	 * @param parser
+	 *            Function used to transform the string.
+	 * @return
+	 */
+	public <T> T getBodyObject(Function<String, T> parser) {
+		return parser.apply(getBody());
+	}
+
+	@Override
+	public String toString() {
+		return getMessage() + " - status: " + statusCode + " body {" + body + "}";
 	}
 
 }

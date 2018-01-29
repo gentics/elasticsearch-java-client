@@ -5,7 +5,6 @@ import java.util.Objects;
 import com.gentics.elasticsearch.client.HttpErrorException;
 
 import io.reactivex.Single;
-import io.vertx.core.json.JsonObject;
 
 /**
  * Document API related methods.

@@ -3,12 +3,15 @@ package com.gentics.elasticsearch.client;
 import java.io.IOException;
 import java.util.Objects;
 
+import org.apache.commons.logging.Log;
+
 import io.reactivex.Single;
 import okhttp3.Call;
 import okhttp3.Callback;
 import okhttp3.HttpUrl;
 import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
+import okhttp3.OkHttpClient.Builder;
 import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
@@ -22,7 +25,7 @@ import okhttp3.ResponseBody;
  */
 public class ElasticsearchOkClient<T> extends AbstractElasticsearchClient<T> {
 
-	private final OkHttpClient client = new OkHttpClient();
+	private final OkHttpClient client;
 
 	public static final MediaType MEDIA_TYPE_JSON = MediaType.parse("application/json; charset=utf-8");
 
@@ -38,6 +41,25 @@ public class ElasticsearchOkClient<T> extends AbstractElasticsearchClient<T> {
 	 */
 	public ElasticsearchOkClient(String scheme, String hostname, int port) {
 		super(scheme, hostname, port);
+		this.client = createClient();
+	}
+
+	private OkHttpClient createClient() {
+		Builder builder = new OkHttpClient.Builder();
+
+		// Disable gzip
+		builder.addInterceptor(chain -> {
+			Request request = chain.request();
+			Request newRequest;
+			try {
+				newRequest = request.newBuilder().addHeader("Accept-Encoding", "identity").build();
+			} catch (Exception e) {
+				e.printStackTrace();
+				return chain.proceed(request);
+			}
+			return chain.proceed(newRequest);
+		});
+		return builder.build();
 	}
 
 	/**
@@ -134,7 +156,7 @@ public class ElasticsearchOkClient<T> extends AbstractElasticsearchClient<T> {
 							}
 						}
 						if (!response.isSuccessful()) {
-							sub.onError(new HttpErrorException("Request failed {" + response.message() + "}", response.code(), bodyStr));
+							sub.onError(new HttpErrorException("Request failed", response.code(), bodyStr));
 							return;
 						}
 						Objects.requireNonNull(parser, "No body parser was configured.");

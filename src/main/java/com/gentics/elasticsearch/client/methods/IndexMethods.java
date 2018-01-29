@@ -72,7 +72,7 @@ public interface IndexMethods<T> extends HTTPMethods<T> {
 	 */
 	default T readIndex(String... indices) throws HttpErrorException {
 		String indicesStr = StringUtils.join(indices, ",");
-		return get("/" + indicesStr);
+		return get(indicesStr);
 	}
 
 	/**
@@ -83,7 +83,7 @@ public interface IndexMethods<T> extends HTTPMethods<T> {
 	 */
 	default Single<T> readIndexAsync(String... indices) {
 		String indicesStr = StringUtils.join(indices, ",");
-		return getAsync("/" + indicesStr);
+		return getAsync(indicesStr);
 	}
 
 	/**
@@ -95,9 +95,9 @@ public interface IndexMethods<T> extends HTTPMethods<T> {
 	 */
 	default T refresh(String... indices) throws Exception {
 		String indicesStr = StringUtils.join(indices, ",");
-		String path = "/_refresh";
+		String path = "_refresh";
 		if (indices.length > 0) {
-			path = "/" + indicesStr + "/_refresh";
+			path = indicesStr + "/_refresh";
 		}
 		return get(path);
 	}
@@ -110,29 +110,29 @@ public interface IndexMethods<T> extends HTTPMethods<T> {
 	 */
 	default Single<T> refreshAsync(String... indices) {
 		String indicesStr = StringUtils.join(indices, ",");
-		String path = "/_refresh";
+		String path = "_refresh";
 		if (indices.length > 0) {
-			path = "/" + indicesStr + "/_refresh";
+			path = indicesStr + "/_refresh";
 		}
 		return getAsync(path);
 	}
 
 	default T createIndexTemplate(String templateName, T json) throws HttpErrorException {
-		return put("/_template/" + templateName, json);
+		return put("_template/" + templateName, json);
 	}
 
 	default Single<T> createIndexTemplateAsync(String templateName, T json) {
 		Objects.requireNonNull(templateName, "A template name must be provided.");
-		return putAsync("/_template/" + templateName, json);
+		return putAsync("_template/" + templateName, json);
 	}
 
 	default T deleteIndexTemplate(String templateName) throws HttpErrorException {
 		Objects.requireNonNull(templateName, "A template name must be provided.");
-		return delete("/_template/" + templateName);
+		return delete("_template/" + templateName);
 	}
 
 	default Single<T> deleteIndexTemplateAsync(String templateName) {
 		Objects.requireNonNull(templateName, "A template name must be provided.");
-		return deleteAsync("/_template/" + templateName);
+		return deleteAsync("_template/" + templateName);
 	}
 }
