@@ -12,11 +12,9 @@ The client is also JSON parser agnostic. You can configure your own JSON parser 
 Client<JsonObject> client = new Client<>("http", "localhost", 9200);
 client.setConverterFunction(JsonObject::new);
 
-JsonObject doc = client.createIndexAsync("dummy", new JsonObject()).toCompletable()
-
-        .andThen(client.storeDocumentAsync("blub", "default", "one", new JsonObject().put("key1", "value1"))).toCompletable()
-
-        .andThen(client.readDocumentAsync("blub", "default", "one")).blockingGet();
+JsonObject doc = client.createIndex("dummy", new JsonObject()).async().toCompletable()
+        .andThen(client.storeDocument("blub", "default", "one", new JsonObject().put("key1", "value1"))).async().toCompletable()
+        .andThen(client.readDocument("blub", "default", "one").async()).blockingGet();
 
 assertEquals("value1", doc.getJsonObject("_source").getString("key1"));
 ```
@@ -27,17 +25,15 @@ assertEquals("value1", doc.getJsonObject("_source").getString("key1"));
 Client<JsonObject> client = new Client<>("http", "localhost", 9200);
 client.setConverterFunction(JsonObject::new);
 
-client.createIndex("dummy", new JsonObject());
-client.storeDocument("blub", "default", "one", new JsonObject().put("key1", "value1"));
+client.createIndex("dummy", new JsonObject()).sync();
+client.storeDocument("blub", "default", "one", new JsonObject().put("key1", "value1")).sync();
 
-JsonObject doc = client.readDocument("blub", "default", "one");
+JsonObject doc = client.readDocument("blub", "default", "one").sync();
 assertEquals("value1", doc.getJsonObject("_source").getString("key1"));
 ```
 
 ## TODOs
 
 * Add Scroll API support 
-* Add additional search API calls
-* Better error handling
 * Support for multiple ES instances
 * More tests
