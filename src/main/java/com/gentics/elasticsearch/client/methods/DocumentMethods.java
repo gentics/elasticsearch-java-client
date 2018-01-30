@@ -37,11 +37,20 @@ public interface DocumentMethods<T> extends HTTPMethods<T> {
 		return deleteBuilder(indexName + "/" + type + "/" + id);
 	}
 
+	/**
+	 * Invoke an partial update on the specified document.
+	 * 
+	 * @param indexName
+	 * @param type
+	 * @param id
+	 * @param json
+	 * @return
+	 */
 	default RequestBuilder<T> updateDocument(String indexName, String type, String id, T json) {
 		Objects.requireNonNull("The indexName must be specified.", indexName);
 		Objects.requireNonNull("The index type must be specified.", type);
 		Objects.requireNonNull("The document id must be specified.", id);
-		return putBuilder(indexName + "/" + type + "/" + id, json);
+		return postBuilder(indexName + "/" + type + "/" + id + "/_update", json);
 	}
 
 	default RequestBuilder<T> readDocument(String indexName, String type, String id) {

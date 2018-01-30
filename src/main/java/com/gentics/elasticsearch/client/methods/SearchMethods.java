@@ -26,7 +26,7 @@ public interface SearchMethods<T> extends HTTPMethods<T> {
 	}
 
 	default RequestBuilder<T> queryScroll(T request, List<String> indices) {
-		return postBuilder("_search", request);
+		return postBuilder("_search/scroll", request);
 	}
 
 	// TODO add scroll support https://www.elastic.co/guide/en/elasticsearch/reference/current/search-request-scroll.html
