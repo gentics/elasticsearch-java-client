@@ -2,7 +2,6 @@ package com.gentics.elasticsearch.client;
 
 import java.io.IOException;
 import java.util.Objects;
-
 import io.reactivex.Single;
 import okhttp3.Call;
 import okhttp3.Callback;
@@ -114,7 +113,10 @@ public class ElasticsearchOkClient<T> extends AbstractElasticsearchClient<T> {
 			call.enqueue(new Callback() {
 				@Override
 				public void onFailure(Call call, IOException e) {
-					sub.onError(e);
+					// Don't call the onError twice. Cancelling will trigger another error.
+					if (!"Canceled".equals(e.getMessage())) {
+						sub.onError(e);
+					}
 				}
 
 				@Override
