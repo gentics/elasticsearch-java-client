@@ -1,7 +1,11 @@
-package com.gentics.elasticsearch.client;
+package com.gentics.elasticsearch.client.okhttp;
 
 import java.io.IOException;
 import java.util.Objects;
+
+import com.gentics.elasticsearch.client.AbstractElasticsearchClient;
+import com.gentics.elasticsearch.client.HttpErrorException;
+
 import io.reactivex.Single;
 import okhttp3.Call;
 import okhttp3.Callback;
@@ -68,8 +72,9 @@ public class ElasticsearchOkClient<T> extends AbstractElasticsearchClient<T> {
 	}
 
 	@Override
-	public RequestBuilder<T> actionBuilder(String method, String path, T json) {
-		return new RequestBuilder<>(method, path, json, this);
+	@SuppressWarnings("unchecked")
+	public RequestBuilder<T> actionBuilder(String method, String path, T... json) {
+		return new RequestBuilder<>(method, path, this, json);
 	}
 
 	/**

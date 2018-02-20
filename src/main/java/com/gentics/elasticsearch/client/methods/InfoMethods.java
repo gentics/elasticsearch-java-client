@@ -1,7 +1,7 @@
 package com.gentics.elasticsearch.client.methods;
 
 import com.gentics.elasticsearch.client.HttpErrorException;
-import com.gentics.elasticsearch.client.RequestBuilder;
+import com.gentics.elasticsearch.client.okhttp.RequestBuilder;
 
 /**
  * Info API related methods.

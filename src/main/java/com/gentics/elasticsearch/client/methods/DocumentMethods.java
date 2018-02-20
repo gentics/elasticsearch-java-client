@@ -2,7 +2,7 @@ package com.gentics.elasticsearch.client.methods;
 
 import java.util.Objects;
 
-import com.gentics.elasticsearch.client.RequestBuilder;
+import com.gentics.elasticsearch.client.okhttp.RequestBuilder;
 
 /**
  * Document API related methods.

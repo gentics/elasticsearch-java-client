@@ -1,4 +1,8 @@
-package com.gentics.elasticsearch.client;
+package com.gentics.elasticsearch.client.okhttp;
+
+import java.nio.charset.Charset;
+
+import com.gentics.elasticsearch.client.HttpErrorException;
 
 import io.reactivex.Single;
 import okhttp3.HttpUrl;
@@ -11,6 +15,8 @@ public class RequestBuilder<T> {
 
 	public static final MediaType MEDIA_TYPE_JSON = MediaType.parse("application/json; charset=utf-8");
 
+	public static final MediaType MEDIA_TYPE_NDJSON = MediaType.parse("application/x-ndjson");
+
 	private ElasticsearchOkClient<T> client;
 
 	private okhttp3.HttpUrl.Builder urlBuilder;
@@ -19,7 +25,8 @@ public class RequestBuilder<T> {
 
 	private String method;
 
-	public RequestBuilder(String method, String path, T json, ElasticsearchOkClient<T> client) {
+	@SuppressWarnings("unchecked")
+	public RequestBuilder(String method, String path, ElasticsearchOkClient<T> client, T... json) {
 		urlBuilder = new HttpUrl.Builder()
 			.scheme(client.getScheme())
 			.host(client.getHostname())
@@ -27,8 +34,17 @@ public class RequestBuilder<T> {
 			.addPathSegments(path);
 
 		RequestBody body = null;
-		if (json != null) {
-			body = RequestBody.create(MEDIA_TYPE_JSON, json.toString());
+		if (json != null && json.length == 1) {
+			body = RequestBody.create(MEDIA_TYPE_JSON, json[0].toString());
+		}
+		if (json != null && json.length > 1) {
+			StringBuilder builder = new StringBuilder();
+			for (T element : json) {
+				builder.append(element.toString());
+				builder.append("\n");
+			}
+			body = RequestBody.create(MEDIA_TYPE_NDJSON, builder.toString().getBytes(Charset.defaultCharset()));
+			//body = RequestBody.create(MEDIA_TYPE_NDJSON, builder.toString());
 		}
 		this.body = body;
 		this.client = client;

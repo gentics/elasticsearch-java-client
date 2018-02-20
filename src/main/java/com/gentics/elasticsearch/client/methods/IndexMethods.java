@@ -4,7 +4,7 @@ import static com.gentics.elasticsearch.client.ClientUtility.join;
 
 import java.util.Objects;
 
-import com.gentics.elasticsearch.client.RequestBuilder;
+import com.gentics.elasticsearch.client.okhttp.RequestBuilder;
 
 /**
  * API methods which are used to interact with indices.

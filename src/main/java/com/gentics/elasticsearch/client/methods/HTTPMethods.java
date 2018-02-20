@@ -1,6 +1,6 @@
 package com.gentics.elasticsearch.client.methods;
 
-import com.gentics.elasticsearch.client.RequestBuilder;
+import com.gentics.elasticsearch.client.okhttp.RequestBuilder;
 
 public interface HTTPMethods<T> {
 
@@ -20,21 +20,26 @@ public interface HTTPMethods<T> {
 	 *            Body data or null if no body should be send
 	 * @return Created builder
 	 */
-	RequestBuilder<T> actionBuilder(String method, String path, T json);
+	@SuppressWarnings("unchecked")
+	RequestBuilder<T> actionBuilder(String method, String path, T... json);
 
+	@SuppressWarnings("unchecked")
 	default RequestBuilder<T> putBuilder(String path, T json) {
 		return actionBuilder(PUT, path, json);
 	}
 
+	@SuppressWarnings("unchecked")
 	default RequestBuilder<T> deleteBuilder(String path) {
-		return actionBuilder(DELETE, path, null);
+		return actionBuilder(DELETE, path);
 	}
 
+	@SuppressWarnings("unchecked")
 	default RequestBuilder<T> getBuilder(String path) {
-		return actionBuilder(GET, path, null);
+		return actionBuilder(GET, path);
 	}
 
-	default RequestBuilder<T> postBuilder(String path, T json) {
+	@SuppressWarnings("unchecked")
+	default RequestBuilder<T> postBuilder(String path, T... json) {
 		return actionBuilder(POST, path, json);
 	}
 

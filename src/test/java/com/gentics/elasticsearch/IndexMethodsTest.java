@@ -7,8 +7,8 @@ import org.junit.Test;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.wait.Wait;
 
-import com.gentics.elasticsearch.client.ElasticsearchOkClient;
 import com.gentics.elasticsearch.client.HttpErrorException;
+import com.gentics.elasticsearch.client.okhttp.ElasticsearchOkClient;
 
 import io.vertx.core.json.JsonObject;
 
