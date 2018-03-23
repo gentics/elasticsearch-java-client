@@ -34,6 +34,11 @@ public interface HTTPMethods<T> {
 	}
 
 	@SuppressWarnings("unchecked")
+	default RequestBuilder<T> deleteBuilder(String path, T json) {
+		return actionBuilder(DELETE, path, json);
+	}
+
+	@SuppressWarnings("unchecked")
 	default RequestBuilder<T> getBuilder(String path) {
 		return actionBuilder(GET, path);
 	}

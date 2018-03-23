@@ -39,7 +39,7 @@ public interface SearchMethods<T> extends HTTPMethods<T> {
 	/**
 	 * Invoke a multisearch request.
 	 * 
-	 * @param query
+	 * @param data
 	 * @return
 	 */
 	default RequestBuilder<T> multiSearch(T... data) {
@@ -54,8 +54,29 @@ public interface SearchMethods<T> extends HTTPMethods<T> {
 	 * @param indices
 	 * @return
 	 */
-	default RequestBuilder<T> searchScroll(T request, List<String> indices) {
-		return postBuilder("_search/scroll", request);
+	default RequestBuilder<T> searchScroll(T request, String scrollAge, String... indices) {
+		String indicesStr = join(indices, ",");
+		return postBuilder(indicesStr + "/_search", request).addQueryParameter("scroll", scrollAge);
+	}
+
+	/**
+	 * Clear the scroll or multiple scrolls using the provided object.
+	 * 
+	 * @param json
+	 * @return
+	 */
+	default RequestBuilder<T> clearScroll(T json) {
+		return deleteBuilder("_search/scroll", json);
+	}
+
+	/**
+	 * Clear the scroll with the given id.
+	 * 
+	 * @param id
+	 * @return
+	 */
+	default RequestBuilder<T> clearScroll(String id) {
+		return deleteBuilder("_search/scroll/" + id);
 	}
 
 	// TODO add scroll support https://www.elastic.co/guide/en/elasticsearch/reference/current/search-request-scroll.html
