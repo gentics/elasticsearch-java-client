@@ -23,6 +23,19 @@ public interface HTTPMethods<T> {
 	@SuppressWarnings("unchecked")
 	RequestBuilder<T> actionBuilder(String method, String path, T... json);
 
+	/**
+	 * Create the given request to the server and return the builder which can be used to inoke the request.
+	 * 
+	 * @param method
+	 *            Http method
+	 * @param path
+	 *            Request path
+	 * @param json
+	 *            Body data or null if no body should be send
+	 * @return Created builder
+	 */
+	RequestBuilder<T> actionBuilder(String method, String path, String bulkData);
+
 	@SuppressWarnings("unchecked")
 	default RequestBuilder<T> putBuilder(String path, T json) {
 		return actionBuilder(PUT, path, json);
@@ -46,6 +59,11 @@ public interface HTTPMethods<T> {
 	@SuppressWarnings("unchecked")
 	default RequestBuilder<T> postBuilder(String path, T... json) {
 		return actionBuilder(POST, path, json);
+	}
+
+	@SuppressWarnings("unchecked")
+	default RequestBuilder<T> postBuilder(String path, String bulkData) {
+		return actionBuilder(POST, path, bulkData);
 	}
 
 }

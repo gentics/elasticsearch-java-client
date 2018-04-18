@@ -19,7 +19,7 @@ public interface DocumentMethods<T> extends HTTPMethods<T> {
 		return putBuilder(indexName + "/" + type + "/" + id, json);
 	}
 
-	default RequestBuilder<T> storeDocumentBulk(T bulkData) {
+	default RequestBuilder<T> processBulk(String bulkData) {
 		return postBuilder("_bulk", bulkData);
 	}
 

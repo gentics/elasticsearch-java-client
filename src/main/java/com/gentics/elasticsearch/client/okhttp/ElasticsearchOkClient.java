@@ -77,6 +77,12 @@ public class ElasticsearchOkClient<T> extends AbstractElasticsearchClient<T> {
 		return new RequestBuilder<>(method, path, this, json);
 	}
 
+	@Override
+	@SuppressWarnings("unchecked")
+	public RequestBuilder<T> actionBuilder(String method, String path, String bulkData) {
+		return new RequestBuilder<>(method, path, this, bulkData);
+	}
+
 	/**
 	 * Execute the request synchronously.
 	 * 

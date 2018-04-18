@@ -44,8 +44,22 @@ public class RequestBuilder<T> {
 				builder.append("\n");
 			}
 			body = RequestBody.create(MEDIA_TYPE_NDJSON, builder.toString().getBytes(Charset.defaultCharset()));
-			//body = RequestBody.create(MEDIA_TYPE_NDJSON, builder.toString());
 		}
+		this.body = body;
+		this.client = client;
+		this.method = method;
+	}
+
+	@SuppressWarnings("unchecked")
+	public RequestBuilder(String method, String path, ElasticsearchOkClient<T> client, String bulkData) {
+		urlBuilder = new HttpUrl.Builder()
+			.scheme(client.getScheme())
+			.host(client.getHostname())
+			.port(client.getPort())
+			.addPathSegments(path);
+
+		RequestBody body = null;
+		body = RequestBody.create(MEDIA_TYPE_NDJSON, bulkData.getBytes(Charset.defaultCharset()));
 		this.body = body;
 		this.client = client;
 		this.method = method;
