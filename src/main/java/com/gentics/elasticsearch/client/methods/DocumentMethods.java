@@ -41,18 +41,33 @@ public interface DocumentMethods<T> extends HTTPMethods<T> {
 	 * Invoke an partial update on the specified document.
 	 * 
 	 * @param indexName
+	 *            Index to be used
 	 * @param type
+	 *            Index type
 	 * @param id
-	 * @param json
+	 *            Document Id
+	 * @param doc
+	 *            Document
 	 * @return
 	 */
-	default RequestBuilder<T> updateDocument(String indexName, String type, String id, T json) {
+	default RequestBuilder<T> updateDocument(String indexName, String type, String id, T doc) {
 		Objects.requireNonNull("The indexName must be specified.", indexName);
 		Objects.requireNonNull("The index type must be specified.", type);
 		Objects.requireNonNull("The document id must be specified.", id);
-		return postBuilder(indexName + "/" + type + "/" + id + "/_update", json);
+		return postBuilder(indexName + "/" + type + "/" + id + "/_update", doc);
 	}
 
+	/**
+	 * Read the document from the index.
+	 * 
+	 * @param indexName
+	 *            Index to be referenced
+	 * @param type
+	 *            Index type
+	 * @param id
+	 *            Document Id
+	 * @return
+	 */
 	default RequestBuilder<T> readDocument(String indexName, String type, String id) {
 		Objects.requireNonNull("The indexName must be specified.", indexName);
 		Objects.requireNonNull("The index type must be specified.", type);

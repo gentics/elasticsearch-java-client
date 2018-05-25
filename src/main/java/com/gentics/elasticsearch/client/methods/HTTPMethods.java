@@ -30,7 +30,7 @@ public interface HTTPMethods<T> {
 	 *            Http method
 	 * @param path
 	 *            Request path
-	 * @param json
+	 * @param bulkData
 	 *            Body data or null if no body should be send
 	 * @return Created builder
 	 */
