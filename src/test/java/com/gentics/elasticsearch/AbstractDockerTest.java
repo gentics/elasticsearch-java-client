@@ -18,7 +18,7 @@ public class AbstractDockerTest {
 	}
 
 	@ClassRule
-	public static ElasticsearchContainer elasticsearch = new ElasticsearchContainer();
+	public static ElasticsearchContainer elasticsearch = new ElasticsearchContainer(true);
 
 	public static ElasticsearchOkClient<JsonObject> client;
 

@@ -12,7 +12,7 @@ import io.vertx.core.json.JsonObject;
 
 public class PipelineMethodsTest extends AbstractDockerTest {
 
-	private static final String PIPELINE_NAME = "attachment";
+	private static final String PIPELINE_NAME = "at.tac.hment";
 
 	@Test
 	public void testIngestPlugin() throws HttpErrorException {
@@ -30,7 +30,6 @@ public class PipelineMethodsTest extends AbstractDockerTest {
 
 		JsonObject result = client.getDocument("blub", "default", "myid").sync();
 		System.out.println(result.encodePrettily());
-
 	}
 
 	private JsonObject getPipelineConfig() {
@@ -38,7 +37,7 @@ public class PipelineMethodsTest extends AbstractDockerTest {
 		config.put("description", "Extract attachment information");
 
 		JsonObject processor = new JsonObject();
-		processor.put(PIPELINE_NAME, new JsonObject().put("field", "data"));
+		processor.put("attachment", new JsonObject().put("field", "data"));
 		config.put("processors", new JsonArray().add(processor));
 		return config;
 	}
