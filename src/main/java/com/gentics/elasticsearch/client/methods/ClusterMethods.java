@@ -15,9 +15,8 @@ public interface ClusterMethods<T> extends HTTPMethods<T> {
 	 * 
 	 * @param nodeIds
 	 * @return
-	 * @throws HttpErrorException
 	 */
-	default RequestBuilder<T> nodesInfo(String... nodeIds) throws HttpErrorException {
+	default RequestBuilder<T> nodesInfo(String... nodeIds) {
 		String nodesStr = join(nodeIds, ",");
 		String path = "_nodes";
 		if (nodeIds.length > 0) {

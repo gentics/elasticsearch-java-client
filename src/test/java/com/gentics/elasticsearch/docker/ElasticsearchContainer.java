@@ -16,10 +16,11 @@ import org.testcontainers.utility.LazyFuture;
 public class ElasticsearchContainer extends GenericContainer<ElasticsearchContainer> {
 
 	public static final String VERSION = "6.1.2";
+	private boolean withIngest = false;
 
 	public ElasticsearchContainer(boolean withIngest) {
 		super(prepareDockerImage(withIngest));
-
+		this.withIngest = withIngest;
 	}
 
 	private static LazyFuture<String> prepareDockerImage(boolean withIngest) {
@@ -42,10 +43,20 @@ public class ElasticsearchContainer extends GenericContainer<ElasticsearchContai
 	@Override
 	protected void configure() {
 		addEnv("discovery.type", "single-node");
+
+		if (!withIngest) {
+			addEnv("node.ingest", "false");
+		}
+
 		// addEnv("xpack.security.enabled", "false");
 		withExposedPorts(9200);
 		withStartupTimeout(Duration.ofSeconds(250L));
 		waitingFor(Wait.forHttp("/"));
+	}
+
+	public ElasticsearchContainer withIngest() {
+		this.withIngest = true;
+		return this;
 	}
 
 }

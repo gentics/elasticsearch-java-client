@@ -61,7 +61,6 @@ public interface HTTPMethods<T> {
 		return actionBuilder(POST, path, json);
 	}
 
-	@SuppressWarnings("unchecked")
 	default RequestBuilder<T> postBuilder(String path, String bulkData) {
 		return actionBuilder(POST, path, bulkData);
 	}

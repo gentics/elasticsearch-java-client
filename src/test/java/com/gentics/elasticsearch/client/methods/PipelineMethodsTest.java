@@ -17,16 +17,23 @@ public class PipelineMethodsTest extends AbstractDockerTest {
 
 	private static final String PIPELINE_NAME = "at.tac.hment";
 
+	private static final String PIPELINE_NAME2 = "at.tac.hment2";
+
+	private static final String EMPTY_PIPELINE_NAME = "empty";
+
 	@Test
 	public void testIngestPlugin() throws HttpErrorException {
 		client.createIndex("blub", new JsonObject()).sync();
 
 		client.registerPipeline(PIPELINE_NAME, getPipelineConfig(Arrays.asList("doc.data1", "doc.data3"))).sync();
-		client.registerPipeline(PIPELINE_NAME + "2", getPipelineConfig(Arrays.asList("doc.data2"))).sync();
+		client.registerPipeline(PIPELINE_NAME2, getPipelineConfig(Arrays.asList("doc.data2"))).sync();
+		client.registerPipeline(EMPTY_PIPELINE_NAME, getPipelineConfig(Arrays.asList())).sync();
+
 		JsonObject pipelines = client.listPipelines().sync();
 		assertTrue(pipelines.containsKey(PIPELINE_NAME));
-		assertTrue(pipelines.containsKey(PIPELINE_NAME + "2"));
-		//client.deregisterPlugin(PIPELINE_NAME + "2").sync();
+		assertTrue(pipelines.containsKey(PIPELINE_NAME2));
+		assertTrue(pipelines.containsKey(EMPTY_PIPELINE_NAME));
+		// client.deregisterPlugin(PIPELINE_NAME + "2").sync();
 
 		// JsonObject doc = new JsonObject();
 		// doc.put("data1", "e1xydGYxXGFuc2kNCkxvcmVtIGlwc3VtIGRvbG9yIHNpdCBhbWV0DQpccGFyIH0=");
@@ -40,13 +47,18 @@ public class PipelineMethodsTest extends AbstractDockerTest {
 		buf.append("{ \"doc\" : {\"data1\" : \"e1xydGYxXGFuc2kNCkxvcmVtIGlwc3VtIGRvbG9yIHNpdCBhbWV0DQpccGFyIH0=\"} }\n");
 
 		buf.append(
-			"{ \"index\" : {\"_id\" : \"myid2\", \"_type\" : \"default\", \"pipeline\": \"" + PIPELINE_NAME + "2" + "\", \"_index\" : \"blub\"} }\n");
+			"{ \"index\" : {\"_id\" : \"myid2\", \"_type\" : \"default\", \"pipeline\": \"" + PIPELINE_NAME2 + "\", \"_index\" : \"blub\"} }\n");
+		buf.append("{ \"doc\" : {\"data2\" : \"e1xydGYxXGFuc2kNCkxvcmVtIGlwc3VtIGRvbG9yIHNpdCBhbWV0DQpccGFyIH0=\"} }\n");
+
+		buf.append(
+			"{ \"index\" : {\"_id\" : \"myid3\", \"_type\" : \"default\", \"pipeline\": \"" + EMPTY_PIPELINE_NAME + "\", \"_index\" : \"blub\"} }\n");
 		buf.append("{ \"doc\" : {\"data2\" : \"e1xydGYxXGFuc2kNCkxvcmVtIGlwc3VtIGRvbG9yIHNpdCBhbWV0DQpccGFyIH0=\"} }\n");
 
 		client.processBulk(buf.toString()).sync();
 
 		System.out.println(client.getDocument("blub", "default", "myid").sync().encodePrettily());
 		System.out.println(client.getDocument("blub", "default", "myid2").sync().encodePrettily());
+		System.out.println(client.getDocument("blub", "default", "myid3").sync().encodePrettily());
 	}
 
 	private JsonObject getPipelineConfig(List<String> fields) {
