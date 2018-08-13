@@ -2,6 +2,7 @@ package com.gentics.elasticsearch.client.okhttp;
 
 import java.io.IOException;
 import java.util.Objects;
+import java.util.concurrent.TimeUnit;
 
 import com.gentics.elasticsearch.client.AbstractElasticsearchClient;
 import com.gentics.elasticsearch.client.HttpErrorException;
@@ -25,7 +26,7 @@ public class ElasticsearchOkClient<T> extends AbstractElasticsearchClient<T> {
 	private final OkHttpClient client;
 
 	/**
-	 * Create a new client.
+	 * Create a new client with a default timeout of 10s for all timeouts (connect, read and write).
 	 * 
 	 * @param scheme
 	 *            Protocol scheme
@@ -35,12 +36,39 @@ public class ElasticsearchOkClient<T> extends AbstractElasticsearchClient<T> {
 	 *            Server port
 	 */
 	public ElasticsearchOkClient(String scheme, String hostname, int port) {
-		super(scheme, hostname, port);
-		this.client = createClient();
+		this(scheme, hostname, port, 10_000, 10_000, 10_000);
 	}
 
-	private OkHttpClient createClient() {
+	/**
+	 * Create a new client with timeouts to connect, read and write to the server in milliseconds.
+	 *
+	 * @param scheme
+	 *            Protocol scheme
+	 * @param hostname
+	 *            Server hostname
+	 * @param port
+	 *            Server port
+	 * @param connectTimeoutMs
+	 * 			  The timeout to connect to the server in milliseconds
+	 * @param readTimeoutMs
+	 *            The timeout to receive data from the server in milliseconds
+	 * @param writeTimeoutMs
+	 *            The timeout to send data to the server in milliseconds
+	 */
+	public ElasticsearchOkClient(String scheme, String hostname, int port, int connectTimeoutMs, int readTimeoutMs, int writeTimeoutMs) {
+		super(scheme, hostname, port);
+		this.client = createClient(connectTimeoutMs, readTimeoutMs, writeTimeoutMs);
+	}
+
+	private OkHttpClient createClient(int connectTimeoutMs, int readTimeoutMs, int writeTimeoutMs) {
 		okhttp3.OkHttpClient.Builder builder = new OkHttpClient.Builder();
+
+		builder.addInterceptor(chain -> {
+			chain.withConnectTimeout(connectTimeoutMs, TimeUnit.MILLISECONDS);
+			chain.withReadTimeout(readTimeoutMs, TimeUnit.MILLISECONDS);
+			chain.withWriteTimeout(writeTimeoutMs, TimeUnit.MILLISECONDS);
+			return chain.proceed(chain.request());
+		});
 
 		// Disable gzip
 		builder.addInterceptor(chain -> {
