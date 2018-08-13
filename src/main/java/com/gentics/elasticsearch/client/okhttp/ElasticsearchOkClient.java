@@ -2,6 +2,7 @@ package com.gentics.elasticsearch.client.okhttp;
 
 import java.io.IOException;
 import java.util.Objects;
+import java.util.concurrent.TimeUnit;
 
 import com.gentics.elasticsearch.client.AbstractElasticsearchClient;
 import com.gentics.elasticsearch.client.HttpErrorException;
@@ -35,12 +36,27 @@ public class ElasticsearchOkClient<T> extends AbstractElasticsearchClient<T> {
 	 *            Server port
 	 */
 	public ElasticsearchOkClient(String scheme, String hostname, int port) {
-		super(scheme, hostname, port);
-		this.client = createClient();
+		this(scheme, hostname, port, 10_000);
 	}
 
-	private OkHttpClient createClient() {
+	public ElasticsearchOkClient(String schema, String hostname, int port, int allTimeoutsInMs) {
+		this(schema, hostname, port, allTimeoutsInMs, allTimeoutsInMs, allTimeoutsInMs);
+	}
+
+	public ElasticsearchOkClient(String schema, String hostname, int port, int connectTimeoutMs, int readTimeoutMs, int writeTimeoutMs) {
+		super(schema, hostname, port);
+		this.client = createClient(connectTimeoutMs, readTimeoutMs, writeTimeoutMs);
+	}
+
+	private OkHttpClient createClient(int connectTimeoutMs, int readTimeoutMs, int writeTimeoutMs) {
 		okhttp3.OkHttpClient.Builder builder = new OkHttpClient.Builder();
+
+		builder.addInterceptor(chain -> {
+			chain.withConnectTimeout(connectTimeoutMs, TimeUnit.MILLISECONDS);
+			chain.withReadTimeout(readTimeoutMs, TimeUnit.MILLISECONDS);
+			chain.withWriteTimeout(writeTimeoutMs, TimeUnit.MILLISECONDS);
+			return chain.proceed(chain.request());
+		});
 
 		// Disable gzip
 		builder.addInterceptor(chain -> {
