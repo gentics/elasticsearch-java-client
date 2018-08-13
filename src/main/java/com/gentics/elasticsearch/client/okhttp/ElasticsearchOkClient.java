@@ -26,7 +26,7 @@ public class ElasticsearchOkClient<T> extends AbstractElasticsearchClient<T> {
 	private final OkHttpClient client;
 
 	/**
-	 * Create a new client.
+	 * Create a new client with a default timeout of 10s for all timeouts (connect, read and write).
 	 * 
 	 * @param scheme
 	 *            Protocol scheme
@@ -36,15 +36,27 @@ public class ElasticsearchOkClient<T> extends AbstractElasticsearchClient<T> {
 	 *            Server port
 	 */
 	public ElasticsearchOkClient(String scheme, String hostname, int port) {
-		this(scheme, hostname, port, 10_000);
+		this(scheme, hostname, port, 10_000, 10_000, 10_000);
 	}
 
-	public ElasticsearchOkClient(String schema, String hostname, int port, int allTimeoutsInMs) {
-		this(schema, hostname, port, allTimeoutsInMs, allTimeoutsInMs, allTimeoutsInMs);
-	}
-
-	public ElasticsearchOkClient(String schema, String hostname, int port, int connectTimeoutMs, int readTimeoutMs, int writeTimeoutMs) {
-		super(schema, hostname, port);
+	/**
+	 * Create a new client with timeouts to connect, read and write to the server in milliseconds.
+	 *
+	 * @param scheme
+	 *            Protocol scheme
+	 * @param hostname
+	 *            Server hostname
+	 * @param port
+	 *            Server port
+	 * @param connectTimeoutMs
+	 * 			  The timeout to connect to the server in milliseconds
+	 * @param readTimeoutMs
+	 *            The timeout to receive data from the server in milliseconds
+	 * @param writeTimeoutMs
+	 *            The timeout to send data to the server in milliseconds
+	 */
+	public ElasticsearchOkClient(String scheme, String hostname, int port, int connectTimeoutMs, int readTimeoutMs, int writeTimeoutMs) {
+		super(scheme, hostname, port);
 		this.client = createClient(connectTimeoutMs, readTimeoutMs, writeTimeoutMs);
 	}
 
