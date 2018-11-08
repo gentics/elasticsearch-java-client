@@ -1,5 +1,8 @@
 package com.gentics.elasticsearch.client.methods;
 
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+
 import com.gentics.elasticsearch.AbstractDockerTest;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
@@ -8,8 +11,6 @@ import org.junit.Test;
 
 import java.util.Optional;
 import java.util.stream.IntStream;
-
-import static org.junit.Assert.*;
 
 public class InfoMethodsTest extends AbstractDockerTest {
 
