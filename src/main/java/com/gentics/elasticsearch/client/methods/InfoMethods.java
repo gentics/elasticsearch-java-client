@@ -15,6 +15,11 @@ public interface InfoMethods<T> extends HTTPMethods<T> {
 		return getBuilder("");
 	}
 
+	default RequestBuilder<T> plugins() {
+		// we need to explicitly set the accept header here otherwise elasticsearch will return a plain text table
+		return getBuilder("_cat/plugins").addHttpHeader("Accept", "application/json");
+	}
+
 	default RequestBuilder<T> clusterHealth() throws HttpErrorException {
 		return getBuilder("_cluster/health");
 	}

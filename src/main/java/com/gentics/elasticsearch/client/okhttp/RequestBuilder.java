@@ -1,14 +1,13 @@
 package com.gentics.elasticsearch.client.okhttp;
 
 import java.nio.charset.Charset;
+import java.util.HashMap;
+import java.util.Map;
 
 import com.gentics.elasticsearch.client.HttpErrorException;
 
 import io.reactivex.Single;
-import okhttp3.HttpUrl;
-import okhttp3.MediaType;
-import okhttp3.Request;
-import okhttp3.RequestBody;
+import okhttp3.*;
 import okhttp3.Request.Builder;
 
 public class RequestBuilder<T> {
@@ -24,6 +23,8 @@ public class RequestBuilder<T> {
 	private RequestBody body;
 
 	private String method;
+
+	private Map<String, String> headers = new HashMap<>();
 
 	@SuppressWarnings("unchecked")
 	public RequestBuilder(String method, String path, ElasticsearchOkClient<T> client, T... json) {
@@ -68,6 +69,9 @@ public class RequestBuilder<T> {
 	private Request build() {
 		Builder builder = new Request.Builder().url(urlBuilder.build());
 		builder.method(method, body);
+		if (!headers.isEmpty()) {
+			builder.headers(Headers.of(headers));
+		}
 		return builder.build();
 	}
 
@@ -99,6 +103,18 @@ public class RequestBuilder<T> {
 	 */
 	public RequestBuilder<T> addQueryParameter(String key, String value) {
 		urlBuilder.addQueryParameter(key, value);
+		return this;
+	}
+
+	/**
+	 * Add a http header to the request.
+	 *
+	 * @param name the header name
+	 * @param value the header value
+	 * @return
+	 */
+	public RequestBuilder<T> addHttpHeader(String name, String value) {
+		headers.put(name, value);
 		return this;
 	}
 }

@@ -5,6 +5,7 @@ import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
 import com.gentics.elasticsearch.client.AbstractElasticsearchClient;
+import com.gentics.elasticsearch.client.ClientUtility;
 import com.gentics.elasticsearch.client.HttpErrorException;
 
 import io.reactivex.Single;
@@ -132,7 +133,7 @@ public class ElasticsearchOkClient<T> extends AbstractElasticsearchClient<T> {
 				throw new HttpErrorException("Request failed {" + response.message() + "}", response.code(), bodyStr);
 			}
 			Objects.requireNonNull(parser, "No body parser was configured.");
-			return parser.apply(bodyStr);
+			return parser.apply(ClientUtility.wrapJsonArrays(bodyStr));
 		} catch (IOException e1) {
 			throw new HttpErrorException("Error while excuting request", e1);
 		}
@@ -175,7 +176,7 @@ public class ElasticsearchOkClient<T> extends AbstractElasticsearchClient<T> {
 							return;
 						}
 						Objects.requireNonNull(parser, "No body parser was configured.");
-						sub.onSuccess(parser.apply(bodyStr));
+						sub.onSuccess(parser.apply(ClientUtility.wrapJsonArrays(bodyStr)));
 					}
 				}
 			});

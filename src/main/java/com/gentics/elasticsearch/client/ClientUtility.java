@@ -8,6 +8,33 @@ import java.util.List;
 public final class ClientUtility {
 
 	/**
+	 * Check if the json string contains a json array as root element
+	 * @param jsonStr the json string
+	 * @return true if the json string contains an array as root element.
+	 */
+	public static Boolean isJsonArray(String jsonStr) {
+		jsonStr = jsonStr.trim();
+		return jsonStr.startsWith("[") && jsonStr.endsWith("]");
+	}
+
+	/**
+	 * Check if the json string contains a json array as root element and
+	 * will wrap the array in a json object with "arrayData" as key.
+	 * If the root element is no json array the json string will be
+	 * returned unchanged.
+	 *
+	 * @param jsonStr the json string
+	 * @return a json array string wrapped in an object or the jsonString itself
+	 */
+	public static String wrapJsonArrays(String jsonStr) {
+		if (isJsonArray(jsonStr)) {
+			return "{ \"arrayData\": " +  jsonStr + "}";
+		}
+		return jsonStr;
+	}
+
+
+	/**
 	 * Convert the given list into an array.
 	 * 
 	 * @param list
