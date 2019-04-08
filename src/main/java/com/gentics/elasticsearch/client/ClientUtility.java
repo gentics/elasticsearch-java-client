@@ -46,10 +46,19 @@ public final class ClientUtility {
 
 	private static final ObjectMapper objectMapper = new ObjectMapper();
 
+	/**
+	 * Returns the default Jackson object mapper.
+	 * @return
+	 */
 	public static ObjectMapper getObjectMapper() {
 		return objectMapper;
 	}
 
+	/**
+	 * Converts an object to a JSON string using the default Jackson Object mapper.
+	 * @param value
+	 * @return
+	 */
 	public static String toJsonString(Object value) {
 		try {
 			return getObjectMapper().writeValueAsString(value);
