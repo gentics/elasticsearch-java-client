@@ -62,6 +62,13 @@ public interface SearchMethods<T> extends HTTPMethods<T> {
 		return postBuilder(indicesStr + "/_search", request).addQueryParameter("scroll", scrollAge);
 	}
 
+	/**
+	 * Continues a scrolling search.
+	 *
+	 * @param scrollAge
+	 * @param scrollId
+	 * @return
+	 */
 	default RequestBuilder<T> scroll(String scrollAge, String scrollId) {
 		ObjectMapper mapper = getObjectMapper();
 		String request = toJsonString(mapper.createObjectNode()
