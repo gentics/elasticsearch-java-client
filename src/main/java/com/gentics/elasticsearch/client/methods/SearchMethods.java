@@ -1,10 +1,13 @@
 package com.gentics.elasticsearch.client.methods;
 
+import static com.gentics.elasticsearch.client.ClientUtility.getObjectMapper;
 import static com.gentics.elasticsearch.client.ClientUtility.join;
 import static com.gentics.elasticsearch.client.ClientUtility.toArray;
+import static com.gentics.elasticsearch.client.ClientUtility.toJsonString;
 
 import java.util.List;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.gentics.elasticsearch.client.okhttp.RequestBuilder;
 
 /**
@@ -59,6 +62,14 @@ public interface SearchMethods<T> extends HTTPMethods<T> {
 		return postBuilder(indicesStr + "/_search", request).addQueryParameter("scroll", scrollAge);
 	}
 
+	default RequestBuilder<T> scroll(String scrollAge, String scrollId) {
+		ObjectMapper mapper = getObjectMapper();
+		String request = toJsonString(mapper.createObjectNode()
+			.put("scroll", scrollAge)
+			.put("scroll_id", scrollId));
+		return postBuilder("/_search/scroll", (T) request);
+	}
+
 	/**
 	 * Clear the scroll or multiple scrolls using the provided object.
 	 * 
@@ -78,6 +89,4 @@ public interface SearchMethods<T> extends HTTPMethods<T> {
 	default RequestBuilder<T> clearScroll(String id) {
 		return deleteBuilder("_search/scroll/" + id);
 	}
-
-	// TODO add scroll support https://www.elastic.co/guide/en/elasticsearch/reference/current/search-request-scroll.html
 }

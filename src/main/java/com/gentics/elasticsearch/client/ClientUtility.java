@@ -1,5 +1,8 @@
 package com.gentics.elasticsearch.client;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import java.util.List;
 
 /**
@@ -39,5 +42,19 @@ public final class ClientUtility {
 			}
 		}
 		return buf.toString();
+	}
+
+	private static final ObjectMapper objectMapper = new ObjectMapper();
+
+	public static ObjectMapper getObjectMapper() {
+		return objectMapper;
+	}
+
+	public static String toJsonString(Object value) {
+		try {
+			return getObjectMapper().writeValueAsString(value);
+		} catch (JsonProcessingException e) {
+			throw new RuntimeException(e);
+		}
 	}
 }
