@@ -3,6 +3,14 @@ package com.gentics.elasticsearch.client.okhttp;
 import java.io.IOException;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Function;
+
+import javax.net.ssl.HostnameVerifier;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLSession;
+import javax.net.ssl.SSLSocketFactory;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.X509TrustManager;
 
 import com.gentics.elasticsearch.client.AbstractElasticsearchClient;
 import com.gentics.elasticsearch.client.HttpErrorException;
@@ -11,6 +19,7 @@ import io.reactivex.Single;
 import okhttp3.Call;
 import okhttp3.Callback;
 import okhttp3.OkHttpClient;
+import okhttp3.OkHttpClient.Builder;
 import okhttp3.Request;
 import okhttp3.Response;
 import okhttp3.ResponseBody;
@@ -23,7 +32,7 @@ import okhttp3.ResponseBody;
  */
 public class ElasticsearchOkClient<T> extends AbstractElasticsearchClient<T> {
 
-	private final OkHttpClient client;
+	private OkHttpClient client;
 
 	/**
 	 * Create a new client with a default timeout of 10s for all timeouts (connect, read and write).
@@ -35,32 +44,15 @@ public class ElasticsearchOkClient<T> extends AbstractElasticsearchClient<T> {
 	 * @param port
 	 *            Server port
 	 */
-	public ElasticsearchOkClient(String scheme, String hostname, int port) {
-		this(scheme, hostname, port, 10_000, 10_000, 10_000);
-	}
-
-	/**
-	 * Create a new client with timeouts to connect, read and write to the server in milliseconds.
-	 *
-	 * @param scheme
-	 *            Protocol scheme
-	 * @param hostname
-	 *            Server hostname
-	 * @param port
-	 *            Server port
-	 * @param connectTimeoutMs
-	 * 			  The timeout to connect to the server in milliseconds
-	 * @param readTimeoutMs
-	 *            The timeout to receive data from the server in milliseconds
-	 * @param writeTimeoutMs
-	 *            The timeout to send data to the server in milliseconds
-	 */
-	public ElasticsearchOkClient(String scheme, String hostname, int port, int connectTimeoutMs, int readTimeoutMs, int writeTimeoutMs) {
+	protected ElasticsearchOkClient(String scheme, String hostname, int port) {
 		super(scheme, hostname, port);
-		this.client = createClient(connectTimeoutMs, readTimeoutMs, writeTimeoutMs);
 	}
 
-	private OkHttpClient createClient(int connectTimeoutMs, int readTimeoutMs, int writeTimeoutMs) {
+	public void init() {
+		this.client = createClient();
+	}
+
+	private OkHttpClient createClient() {
 		okhttp3.OkHttpClient.Builder builder = new OkHttpClient.Builder();
 
 		builder.addInterceptor(chain -> {
@@ -69,6 +61,11 @@ public class ElasticsearchOkClient<T> extends AbstractElasticsearchClient<T> {
 			chain.withWriteTimeout(writeTimeoutMs, TimeUnit.MILLISECONDS);
 			return chain.proceed(chain.request());
 		});
+
+		// Check whether custom certificate chain has been set
+		if (certPath != null && keyPath != null && caPath != null) {
+			configureCustomSSL(builder);
+		}
 
 		// Disable gzip
 		builder.addInterceptor(chain -> {
@@ -83,6 +80,34 @@ public class ElasticsearchOkClient<T> extends AbstractElasticsearchClient<T> {
 			return chain.proceed(newRequest);
 		});
 		return builder.build();
+	}
+
+	private void configureCustomSSL(Builder builder) {
+		// Create the trust manager which can handle and validate our custom certificate chains
+		X509TrustManager trustManager = TrustManagerUtil.create(certPath, keyPath, caPath);
+		TrustManager[] customTrustCerts = new TrustManager[] { trustManager };
+
+		try {
+			// Install the custom trust manager
+			SSLContext sslContext = SSLContext.getInstance("TLS");
+			sslContext.init(null, customTrustCerts, new java.security.SecureRandom());
+
+			// Create an SSL socket factory with our manager
+			SSLSocketFactory sslSocketFactory = sslContext.getSocketFactory();
+			builder.followRedirects(true);
+			builder.sslSocketFactory(sslSocketFactory, trustManager);
+			if (!isVerifyHostnames()) {
+				builder.hostnameVerifier(new HostnameVerifier() {
+					@Override
+					public boolean verify(String hostname, SSLSession session) {
+						return true;
+					}
+				});
+			}
+		} catch (Exception e) {
+			throw new RuntimeException("Error while configuring SSL options", e);
+		}
+
 	}
 
 	/**
@@ -182,6 +207,111 @@ public class ElasticsearchOkClient<T> extends AbstractElasticsearchClient<T> {
 		});
 	}
 
+	public static class ElasticsearchOkClientBuilder<T> {
 
+		private String scheme = "http";
+		private String hostname = "localhost";
+		private int port = 9200;
+
+		private int connectTimeoutMs = 10_000;
+		private int readTimeoutMs = 10_000;
+		private int writeTimeoutMs = 10_000;
+
+		private String certPath;
+		private String keyPath;
+		private String caPath;
+
+		private Function<String, T> converter;
+
+		private String username;
+		private String password;
+
+		public ElasticsearchOkClient<T> build() {
+			ElasticsearchOkClient<T> client = new ElasticsearchOkClient<>(scheme, hostname, port);
+			if (username != null) {
+				client.setLogin(username, password);
+			}
+
+			client.setConnectTimeoutMs(connectTimeoutMs);
+			client.setReadTimeoutMs(readTimeoutMs);
+			client.setWriteTimeoutMs(writeTimeoutMs);
+
+			if (certPath != null) {
+				client.setCert(certPath);
+			}
+			if (keyPath != null) {
+				client.setKey(keyPath);
+			}
+			if (caPath != null) {
+				client.setCA(caPath);
+			}
+
+			if (converter != null) {
+				client.setConverterFunction(converter);
+			}
+			client.init();
+			return client;
+		}
+
+		public ElasticsearchOkClientBuilder<T> setScheme(String scheme) {
+			this.scheme = scheme;
+			return this;
+		}
+
+		public ElasticsearchOkClientBuilder<T> setHostname(String hostname) {
+			this.hostname = hostname;
+			return this;
+		}
+
+		public ElasticsearchOkClientBuilder<T> setPort(int port) {
+			this.port = port;
+			return this;
+		}
+
+		public ElasticsearchOkClientBuilder<T> setLogin(String username, String password) {
+			this.username = username;
+			this.password = password;
+			return this;
+		}
+
+		public ElasticsearchOkClientBuilder<T> setConnectTimeoutMs(int connectTimeoutMs) {
+			this.connectTimeoutMs = connectTimeoutMs;
+			return this;
+		}
+
+		public ElasticsearchOkClientBuilder<T> setReadTimeoutMs(int readTimeoutMs) {
+			this.readTimeoutMs = readTimeoutMs;
+			return this;
+		}
+
+		public ElasticsearchOkClientBuilder<T> setWriteTimeoutMs(int writeTimeoutMs) {
+			this.writeTimeoutMs = writeTimeoutMs;
+			return this;
+		}
+
+		public ElasticsearchOkClientBuilder<T> setCertPath(String path) {
+			this.certPath = path;
+			return this;
+		}
+
+		public ElasticsearchOkClientBuilder<T> setCaPath(String caPath) {
+			this.caPath = caPath;
+			return this;
+		}
+
+		public ElasticsearchOkClientBuilder<T> setKeyPath(String keyPath) {
+			this.keyPath = keyPath;
+			return this;
+		}
+
+		public ElasticsearchOkClientBuilder<T> setConverterFunction(Function<String, T> converter) {
+			this.converter = converter;
+			return this;
+		}
+	}
+
+	public static <T> ElasticsearchOkClientBuilder<T> builder() {
+		return new ElasticsearchOkClientBuilder<T>();
+	}
 
 }

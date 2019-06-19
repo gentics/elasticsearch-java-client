@@ -8,8 +8,8 @@ import io.reactivex.Single;
 import okhttp3.HttpUrl;
 import okhttp3.MediaType;
 import okhttp3.Request;
-import okhttp3.RequestBody;
 import okhttp3.Request.Builder;
+import okhttp3.RequestBody;
 
 public class RequestBuilder<T> {
 
@@ -17,21 +17,19 @@ public class RequestBuilder<T> {
 
 	public static final MediaType MEDIA_TYPE_NDJSON = MediaType.parse("application/x-ndjson");
 
-	private ElasticsearchOkClient<T> client;
+	private final ElasticsearchOkClient<T> client;
 
-	private okhttp3.HttpUrl.Builder urlBuilder;
+	private final okhttp3.HttpUrl.Builder urlBuilder;
 
 	private RequestBody body;
 
-	private String method;
+	private final String method;
 
 	@SuppressWarnings("unchecked")
 	public RequestBuilder(String method, String path, ElasticsearchOkClient<T> client, T... json) {
-		urlBuilder = new HttpUrl.Builder()
-			.scheme(client.getScheme())
-			.host(client.getHostname())
-			.port(client.getPort())
-			.addPathSegments(path);
+		this.client = client;
+		this.method = method;
+		this.urlBuilder = createUrlBuilder(path);
 
 		RequestBody body = null;
 		if (json != null && json.length == 1) {
@@ -46,23 +44,29 @@ public class RequestBuilder<T> {
 			body = RequestBody.create(MEDIA_TYPE_NDJSON, builder.toString().getBytes(Charset.defaultCharset()));
 		}
 		this.body = body;
-		this.client = client;
-		this.method = method;
 	}
 
-	@SuppressWarnings("unchecked")
 	public RequestBuilder(String method, String path, ElasticsearchOkClient<T> client, String bulkData) {
-		urlBuilder = new HttpUrl.Builder()
+		this.client = client;
+		this.method = method;
+		this.urlBuilder = createUrlBuilder(path);
+		RequestBody body = null;
+		body = RequestBody.create(MEDIA_TYPE_NDJSON, bulkData.getBytes(Charset.defaultCharset()));
+		this.body = body;
+	}
+
+	private okhttp3.HttpUrl.Builder createUrlBuilder(String path) {
+		okhttp3.HttpUrl.Builder builder = new HttpUrl.Builder()
 			.scheme(client.getScheme())
 			.host(client.getHostname())
 			.port(client.getPort())
 			.addPathSegments(path);
 
-		RequestBody body = null;
-		body = RequestBody.create(MEDIA_TYPE_NDJSON, bulkData.getBytes(Charset.defaultCharset()));
-		this.body = body;
-		this.client = client;
-		this.method = method;
+		if (client.hasLogin()) {
+			builder.username(client.getUsername());
+			builder.password(client.getPassword());
+		}
+		return builder;
 	}
 
 	private Request build() {

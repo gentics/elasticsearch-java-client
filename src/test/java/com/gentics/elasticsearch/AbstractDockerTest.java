@@ -24,7 +24,11 @@ public class AbstractDockerTest {
 
 	@BeforeClass
 	public static void setupClient() {
-		client = new ElasticsearchOkClient<>("http", "localhost", elasticsearch.getMappedPort(9200));
+		client = new ElasticsearchOkClient.ElasticsearchOkClientBuilder<JsonObject>()
+			.setScheme("http")
+			.setHostname("localhost")
+			.setPort(elasticsearch.getMappedPort(9200))
+			.build();
 		client.setConverterFunction(JsonObject::new);
 	}
 
