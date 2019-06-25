@@ -65,7 +65,7 @@ public class ElasticsearchOkClient<T> extends AbstractElasticsearchClient<T> {
 		});
 
 		// Check whether custom certificate chain has been set
-		if (certPath != null && keyPath != null && caPath != null) {
+		if (certPath != null && caPath != null) {
 			configureCustomSSL(builder);
 		}
 
@@ -87,18 +87,17 @@ public class ElasticsearchOkClient<T> extends AbstractElasticsearchClient<T> {
 	private void configureCustomSSL(Builder builder) {
 		try {
 			// Create the trust manager which can handle and validate our custom certificate chains
-			X509TrustManager trustManager = TrustManagerUtil.create(certPath, keyPath, caPath);
+			X509TrustManager trustManager = TrustManagerUtil.create(certPath, caPath);
 			TrustManager[] trustManagers = new TrustManager[] { trustManager };
 
-			X509KeyManager clientKeyManager = KeyManagerUtil.create(keyPath);
-			KeyManager[] keyManagers = new KeyManager[] { clientKeyManager };
+			//X509KeyManager clientKeyManager = KeyManagerUtil.create(keyPath);
+			//KeyManager[] keyManagers = new KeyManager[] { clientKeyManager };
 
 			// Install the custom trust manager
 			SSLContext sslContext = SSLContext.getInstance("TLS");
-			//sslContext.init(keyManager, customTrustCerts, new java.security.SecureRandom());
-			sslContext.init(keyManagers, trustManagers, null);
+			sslContext.init(null, trustManagers, new java.security.SecureRandom());
 
-			// Create an SSL socket factory with our manager
+			// Create an SSL socket factory with our managers
 			SSLSocketFactory sslSocketFactory = sslContext.getSocketFactory();
 			builder.followRedirects(true);
 			builder.sslSocketFactory(sslSocketFactory, trustManager);
@@ -224,7 +223,6 @@ public class ElasticsearchOkClient<T> extends AbstractElasticsearchClient<T> {
 		private int writeTimeoutMs = 10_000;
 
 		private String certPath;
-		private String keyPath;
 		private String caPath;
 
 		private Function<String, T> converter;
@@ -244,9 +242,6 @@ public class ElasticsearchOkClient<T> extends AbstractElasticsearchClient<T> {
 
 			if (certPath != null) {
 				client.setCert(certPath);
-			}
-			if (keyPath != null) {
-				client.setKey(keyPath);
 			}
 			if (caPath != null) {
 				client.setCA(caPath);
@@ -302,11 +297,6 @@ public class ElasticsearchOkClient<T> extends AbstractElasticsearchClient<T> {
 
 		public ElasticsearchOkClientBuilder<T> setCaPath(String caPath) {
 			this.caPath = caPath;
-			return this;
-		}
-
-		public ElasticsearchOkClientBuilder<T> setKeyPath(String keyPath) {
-			this.keyPath = keyPath;
 			return this;
 		}
 

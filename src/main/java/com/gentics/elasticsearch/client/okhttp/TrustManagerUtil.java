@@ -1,8 +1,6 @@
 package com.gentics.elasticsearch.client.okhttp;
 
 import java.io.ByteArrayInputStream;
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
@@ -14,7 +12,6 @@ import java.security.cert.CertificateFactory;
 import java.util.Arrays;
 import java.util.Collection;
 
-import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.TrustManagerFactory;
 import javax.net.ssl.X509TrustManager;
@@ -24,12 +21,11 @@ public final class TrustManagerUtil {
 	private TrustManagerUtil() {
 	}
 
-	public static X509TrustManager create(String certPath, String keyPath, String caCertPath) {
+	public static X509TrustManager create(String certPath, String caCertPath) {
 		try {
 			String cert = readFile(certPath, "cert");
-			// String key = readFile(keyPath, "key");
 			String ca = readFile(caCertPath, "ca");
-			return createManager(keyPath, getCertChain(cert, ca));
+			return createManager(getCertChain(cert, ca));
 		} catch (GeneralSecurityException e) {
 			throw new RuntimeException("Error while creating custom trust manager", e);
 		}
@@ -40,13 +36,11 @@ public final class TrustManagerUtil {
 		return new ByteArrayInputStream(chain.getBytes());
 	}
 
-	private static X509TrustManager createManager(String clientKeyPath, InputStream ins) throws GeneralSecurityException {
+	private static X509TrustManager createManager(InputStream certChainStream) throws GeneralSecurityException {
 		char[] password = "".toCharArray();
 
-		KeyStore clientKeyStore = KeyStoreUtil.readPKCS12("", clientKeyPath);
-
 		CertificateFactory certificateFactory = CertificateFactory.getInstance("X.509");
-		Collection<? extends Certificate> certificates = certificateFactory.generateCertificates(ins);
+		Collection<? extends Certificate> certificates = certificateFactory.generateCertificates(certChainStream);
 		if (certificates.isEmpty()) {
 			throw new IllegalArgumentException("expected non-empty set of trusted certificates");
 		}
@@ -58,10 +52,6 @@ public final class TrustManagerUtil {
 			String certificateAlias = Integer.toString(index++);
 			keyStore.setCertificateEntry(certificateAlias, certificate);
 		}
-
-		// Use it to build an X509 trust manager.
-		KeyManagerFactory keyManagerFactory = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
-		keyManagerFactory.init(clientKeyStore, password);
 
 		TrustManagerFactory trustManagerFactory = TrustManagerFactory.getInstance(
 			TrustManagerFactory.getDefaultAlgorithm());

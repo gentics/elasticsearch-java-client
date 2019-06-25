@@ -18,8 +18,6 @@ public class SSLClientTest {
 			.setHostname("localhost")
 			.setPort(9200)
 			.setCertPath(certDir + "elastic-certificates.crt.pem")
-			//.setKeyPath(certDir + "elastic-certificates.key.pem")
-			.setKeyPath(certDir + "elastic-certificates.p12")
 			.setCaPath(certDir + "elastic-stack-ca.crt.pem")
 			.setConverterFunction(JsonObject::new)
 			.build();
