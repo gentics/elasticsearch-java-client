@@ -71,7 +71,9 @@ public class RequestBuilder<T> {
 
 	private Request build() {
 		Builder builder = new Request.Builder().url(urlBuilder.build());
-		builder.header("Authorization", Credentials.basic(client.getUsername(), client.getPassword()));
+		if (client.hasLogin()) {
+			builder.header("Authorization", Credentials.basic(client.getUsername(), client.getPassword()));
+		}
 		builder.method(method, body);
 		return builder.build();
 	}

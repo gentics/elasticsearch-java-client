@@ -1,5 +1,6 @@
 package com.gentics.elasticsearch.client.methods;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
 import com.gentics.elasticsearch.client.HttpErrorException;
@@ -7,6 +8,7 @@ import com.gentics.elasticsearch.client.okhttp.ElasticsearchOkClient;
 
 import io.vertx.core.json.JsonObject;
 
+@Ignore
 public class SSLClientTest {
 
 	@Test

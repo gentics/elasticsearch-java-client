@@ -107,12 +107,33 @@ public interface ElasticsearchClient<T> extends
 	 */
 	boolean isVerifyHostnames();
 
+	/**
+	 * Set the converter function for the client which is used to transform the server response into T. This can for example be used to return POJO's or
+	 * JsonObjects instead of strings.
+	 * 
+	 * @param parser
+	 */
 	void setConverterFunction(Function<String, T> parser);
 
+	/**
+	 * Set the client connect timeout in milliseconds.
+	 * 
+	 * @param connectTimeoutMs
+	 */
 	void setConnectTimeoutMs(int connectTimeoutMs);
 
+	/**
+	 * Set the client read timeout in milliseconds.
+	 * 
+	 * @param readTimeoutMs
+	 */
 	void setReadTimeoutMs(int readTimeoutMs);
 
+	/**
+	 * Set the client write timeout in milliseconds.
+	 * 
+	 * @param writeTimeoutMs
+	 */
 	void setWriteTimeoutMs(int writeTimeoutMs);
 
 }

@@ -11,16 +11,29 @@ import java.security.cert.Certificate;
 import java.security.cert.CertificateFactory;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Random;
 
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.TrustManagerFactory;
 import javax.net.ssl.X509TrustManager;
 
+/**
+ * Utility class which can be used to create custom trust managers.
+ */
 public final class TrustManagerUtil {
 
 	private TrustManagerUtil() {
 	}
 
+	/**
+	 * Create a new trust manager which just contains/trusts the given certificate chain.
+	 * 
+	 * @param certPath
+	 *            Path to the certificate PEM file
+	 * @param caCertPath
+	 *            Path to the CA certificate PEM file
+	 * @return
+	 */
 	public static X509TrustManager create(String certPath, String caCertPath) {
 		try {
 			String cert = readFile(certPath, "cert");
@@ -37,7 +50,8 @@ public final class TrustManagerUtil {
 	}
 
 	private static X509TrustManager createManager(InputStream certChainStream) throws GeneralSecurityException {
-		char[] password = "".toCharArray();
+		// Password is just needed to create a new keystore. The keystore is only used during runtime.
+		String randomPassword = Long.toString(new Random().nextLong() & Long.MAX_VALUE, 36);
 
 		CertificateFactory certificateFactory = CertificateFactory.getInstance("X.509");
 		Collection<? extends Certificate> certificates = certificateFactory.generateCertificates(certChainStream);
@@ -46,7 +60,7 @@ public final class TrustManagerUtil {
 		}
 
 		// Put the certificates a key store.
-		KeyStore keyStore = KeyStoreUtil.newEmptyKeyStore(password);
+		KeyStore keyStore = KeyStoreUtil.newEmptyKeyStore(randomPassword);
 		int index = 0;
 		for (Certificate certificate : certificates) {
 			String certificateAlias = Integer.toString(index++);
@@ -64,7 +78,6 @@ public final class TrustManagerUtil {
 		}
 		return (X509TrustManager) trustManagers[0];
 	}
-
 
 	private static String readFile(String path, String name) {
 		try {

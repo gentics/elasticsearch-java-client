@@ -90,9 +90,6 @@ public class ElasticsearchOkClient<T> extends AbstractElasticsearchClient<T> {
 			X509TrustManager trustManager = TrustManagerUtil.create(certPath, caPath);
 			TrustManager[] trustManagers = new TrustManager[] { trustManager };
 
-			//X509KeyManager clientKeyManager = KeyManagerUtil.create(keyPath);
-			//KeyManager[] keyManagers = new KeyManager[] { clientKeyManager };
-
 			// Install the custom trust manager
 			SSLContext sslContext = SSLContext.getInstance("TLS");
 			sslContext.init(null, trustManagers, new java.security.SecureRandom());
