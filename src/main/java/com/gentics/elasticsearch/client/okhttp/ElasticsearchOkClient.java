@@ -6,10 +6,12 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 
 import javax.net.ssl.HostnameVerifier;
+import javax.net.ssl.KeyManager;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLSession;
 import javax.net.ssl.SSLSocketFactory;
 import javax.net.ssl.TrustManager;
+import javax.net.ssl.X509KeyManager;
 import javax.net.ssl.X509TrustManager;
 
 import com.gentics.elasticsearch.client.AbstractElasticsearchClient;
@@ -83,14 +85,18 @@ public class ElasticsearchOkClient<T> extends AbstractElasticsearchClient<T> {
 	}
 
 	private void configureCustomSSL(Builder builder) {
-		// Create the trust manager which can handle and validate our custom certificate chains
-		X509TrustManager trustManager = TrustManagerUtil.create(certPath, keyPath, caPath);
-		TrustManager[] customTrustCerts = new TrustManager[] { trustManager };
-
 		try {
+			// Create the trust manager which can handle and validate our custom certificate chains
+			X509TrustManager trustManager = TrustManagerUtil.create(certPath, keyPath, caPath);
+			TrustManager[] trustManagers = new TrustManager[] { trustManager };
+
+			X509KeyManager clientKeyManager = KeyManagerUtil.create(keyPath);
+			KeyManager[] keyManagers = new KeyManager[] { clientKeyManager };
+
 			// Install the custom trust manager
 			SSLContext sslContext = SSLContext.getInstance("TLS");
-			sslContext.init(null, customTrustCerts, new java.security.SecureRandom());
+			//sslContext.init(keyManager, customTrustCerts, new java.security.SecureRandom());
+			sslContext.init(keyManagers, trustManagers, null);
 
 			// Create an SSL socket factory with our manager
 			SSLSocketFactory sslSocketFactory = sslContext.getSocketFactory();

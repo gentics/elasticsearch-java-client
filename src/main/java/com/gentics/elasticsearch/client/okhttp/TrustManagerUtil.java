@@ -1,6 +1,8 @@
 package com.gentics.elasticsearch.client.okhttp;
 
 import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
@@ -25,20 +27,24 @@ public final class TrustManagerUtil {
 	public static X509TrustManager create(String certPath, String keyPath, String caCertPath) {
 		try {
 			String cert = readFile(certPath, "cert");
-			String key = readFile(keyPath, "key");
+			// String key = readFile(keyPath, "key");
 			String ca = readFile(caCertPath, "ca");
-			return createManager(getCertChain(cert, key, ca));
+			return createManager(keyPath, getCertChain(cert, ca));
 		} catch (GeneralSecurityException e) {
 			throw new RuntimeException("Error while creating custom trust manager", e);
 		}
 	}
 
-	private static InputStream getCertChain(String cert, String key, String ca) {
-		String chain = cert + key + ca;
+	private static InputStream getCertChain(String cert, String ca) {
+		String chain = cert + ca;
 		return new ByteArrayInputStream(chain.getBytes());
 	}
 
-	private static X509TrustManager createManager(InputStream ins) throws GeneralSecurityException {
+	private static X509TrustManager createManager(String clientKeyPath, InputStream ins) throws GeneralSecurityException {
+		char[] password = "".toCharArray();
+
+		KeyStore clientKeyStore = KeyStoreUtil.readPKCS12("", clientKeyPath);
+
 		CertificateFactory certificateFactory = CertificateFactory.getInstance("X.509");
 		Collection<? extends Certificate> certificates = certificateFactory.generateCertificates(ins);
 		if (certificates.isEmpty()) {
@@ -46,8 +52,7 @@ public final class TrustManagerUtil {
 		}
 
 		// Put the certificates a key store.
-		char[] password = "password".toCharArray(); // Any password will work.
-		KeyStore keyStore = newEmptyKeyStore(password);
+		KeyStore keyStore = KeyStoreUtil.newEmptyKeyStore(password);
 		int index = 0;
 		for (Certificate certificate : certificates) {
 			String certificateAlias = Integer.toString(index++);
@@ -55,9 +60,9 @@ public final class TrustManagerUtil {
 		}
 
 		// Use it to build an X509 trust manager.
-		KeyManagerFactory keyManagerFactory = KeyManagerFactory.getInstance(
-			KeyManagerFactory.getDefaultAlgorithm());
-		keyManagerFactory.init(keyStore, password);
+		KeyManagerFactory keyManagerFactory = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
+		keyManagerFactory.init(clientKeyStore, password);
+
 		TrustManagerFactory trustManagerFactory = TrustManagerFactory.getInstance(
 			TrustManagerFactory.getDefaultAlgorithm());
 		trustManagerFactory.init(keyStore);
@@ -70,16 +75,6 @@ public final class TrustManagerUtil {
 		return (X509TrustManager) trustManagers[0];
 	}
 
-	private static KeyStore newEmptyKeyStore(char[] password) throws GeneralSecurityException {
-		try {
-			KeyStore keyStore = KeyStore.getInstance(KeyStore.getDefaultType());
-			InputStream in = null; // By convention, 'null' creates an empty key store.
-			keyStore.load(in, password);
-			return keyStore;
-		} catch (IOException e) {
-			throw new AssertionError(e);
-		}
-	}
 
 	private static String readFile(String path, String name) {
 		try {

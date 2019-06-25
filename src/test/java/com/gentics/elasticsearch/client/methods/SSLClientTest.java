@@ -18,11 +18,13 @@ public class SSLClientTest {
 			.setHostname("localhost")
 			.setPort(9200)
 			.setCertPath(certDir + "elastic-certificates.crt.pem")
-			.setKeyPath(certDir + "elastic-certificates.key.pem")
+			//.setKeyPath(certDir + "elastic-certificates.key.pem")
+			.setKeyPath(certDir + "elastic-certificates.p12")
 			.setCaPath(certDir + "elastic-stack-ca.crt.pem")
 			.setConverterFunction(JsonObject::new)
 			.build();
-		client.createIndex("test", new JsonObject()).sync();
+		JsonObject info = client.clusterHealth().sync();
+		System.out.println(info.encodePrettily());
 	}
 
 }

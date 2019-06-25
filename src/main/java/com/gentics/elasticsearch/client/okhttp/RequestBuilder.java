@@ -5,6 +5,7 @@ import java.nio.charset.Charset;
 import com.gentics.elasticsearch.client.HttpErrorException;
 
 import io.reactivex.Single;
+import okhttp3.Credentials;
 import okhttp3.HttpUrl;
 import okhttp3.MediaType;
 import okhttp3.Request;
@@ -50,9 +51,7 @@ public class RequestBuilder<T> {
 		this.client = client;
 		this.method = method;
 		this.urlBuilder = createUrlBuilder(path);
-		RequestBody body = null;
-		body = RequestBody.create(MEDIA_TYPE_NDJSON, bulkData.getBytes(Charset.defaultCharset()));
-		this.body = body;
+		this.body = RequestBody.create(MEDIA_TYPE_NDJSON, bulkData.getBytes(Charset.defaultCharset()));
 	}
 
 	private okhttp3.HttpUrl.Builder createUrlBuilder(String path) {
@@ -66,11 +65,13 @@ public class RequestBuilder<T> {
 			builder.username(client.getUsername());
 			builder.password(client.getPassword());
 		}
+
 		return builder;
 	}
 
 	private Request build() {
 		Builder builder = new Request.Builder().url(urlBuilder.build());
+		builder.header("Authorization", Credentials.basic("elastic", "finger"));
 		builder.method(method, body);
 		return builder.build();
 	}
