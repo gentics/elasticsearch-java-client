@@ -74,7 +74,7 @@ public interface SearchMethods<T> extends HTTPMethods<T> {
 		String request = toJsonString(mapper.createObjectNode()
 			.put("scroll", scrollAge)
 			.put("scroll_id", scrollId));
-		return postBuilder("/_search/scroll", (T) request);
+		return postBuilder("_search/scroll", (T) request);
 	}
 
 	/**
