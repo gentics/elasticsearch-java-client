@@ -59,7 +59,7 @@ public final class TrustManagerUtil {
 			throw new IllegalArgumentException("expected non-empty set of trusted certificates");
 		}
 
-		// Put the certificates a key store.
+		// Put the certificates in the keystore.
 		KeyStore keyStore = KeyStoreUtil.newEmptyKeyStore(randomPassword);
 		int index = 0;
 		for (Certificate certificate : certificates) {

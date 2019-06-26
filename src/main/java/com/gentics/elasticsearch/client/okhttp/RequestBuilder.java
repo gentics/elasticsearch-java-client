@@ -1,6 +1,6 @@
 package com.gentics.elasticsearch.client.okhttp;
 
-import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 
 import com.gentics.elasticsearch.client.HttpErrorException;
 
@@ -42,7 +42,7 @@ public class RequestBuilder<T> {
 				builder.append(element.toString());
 				builder.append("\n");
 			}
-			body = RequestBody.create(MEDIA_TYPE_NDJSON, builder.toString().getBytes(Charset.defaultCharset()));
+			body = RequestBody.create(MEDIA_TYPE_NDJSON, builder.toString().getBytes(StandardCharsets.UTF_8));
 		}
 		this.body = body;
 	}
@@ -51,22 +51,15 @@ public class RequestBuilder<T> {
 		this.client = client;
 		this.method = method;
 		this.urlBuilder = createUrlBuilder(path);
-		this.body = RequestBody.create(MEDIA_TYPE_NDJSON, bulkData.getBytes(Charset.defaultCharset()));
+		this.body = RequestBody.create(MEDIA_TYPE_NDJSON, bulkData.getBytes(StandardCharsets.UTF_8));
 	}
 
 	private okhttp3.HttpUrl.Builder createUrlBuilder(String path) {
-		okhttp3.HttpUrl.Builder builder = new HttpUrl.Builder()
+		return new HttpUrl.Builder()
 			.scheme(client.getScheme())
 			.host(client.getHostname())
 			.port(client.getPort())
 			.addPathSegments(path);
-
-		if (client.hasLogin()) {
-			builder.username(client.getUsername());
-			builder.password(client.getPassword());
-		}
-
-		return builder;
 	}
 
 	private Request build() {

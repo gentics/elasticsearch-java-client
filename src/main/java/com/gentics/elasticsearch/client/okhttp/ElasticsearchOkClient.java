@@ -6,12 +6,10 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 
 import javax.net.ssl.HostnameVerifier;
-import javax.net.ssl.KeyManager;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLSession;
 import javax.net.ssl.SSLSocketFactory;
 import javax.net.ssl.TrustManager;
-import javax.net.ssl.X509KeyManager;
 import javax.net.ssl.X509TrustManager;
 
 import com.gentics.elasticsearch.client.AbstractElasticsearchClient;
@@ -21,7 +19,6 @@ import io.reactivex.Single;
 import okhttp3.Call;
 import okhttp3.Callback;
 import okhttp3.OkHttpClient;
-import okhttp3.OkHttpClient.Builder;
 import okhttp3.Request;
 import okhttp3.Response;
 import okhttp3.ResponseBody;
@@ -34,20 +31,31 @@ import okhttp3.ResponseBody;
  */
 public class ElasticsearchOkClient<T> extends AbstractElasticsearchClient<T> {
 
+	public static <T> Builder<T> builder() {
+		return new Builder<T>();
+	}
+
 	private OkHttpClient client;
 
 	/**
 	 * Create a new client with a default timeout of 10s for all timeouts (connect, read and write).
 	 * 
 	 * @param scheme
-	 *            Protocol scheme
 	 * @param hostname
-	 *            Server hostname
 	 * @param port
-	 *            Server port
+	 * @param username
+	 * @param password
+	 * @param certPath
+	 * @param caPath
+	 * @param connectTimeoutMs
+	 * @param readTimeoutMs
+	 * @param writeTimeoutMs
+	 * @param verifyHostnames
+	 * @param parser
 	 */
-	protected ElasticsearchOkClient(String scheme, String hostname, int port) {
-		super(scheme, hostname, port);
+	protected ElasticsearchOkClient(String scheme, String hostname, int port, String username, String password, String certPath, String caPath,
+		int connectTimeoutMs, int readTimeoutMs, int writeTimeoutMs, boolean verifyHostnames, Function<String, T> parser) {
+		super(scheme, hostname, port, username, password, certPath, caPath, connectTimeoutMs, readTimeoutMs, writeTimeoutMs, verifyHostnames, parser);
 	}
 
 	public void init() {
@@ -84,7 +92,7 @@ public class ElasticsearchOkClient<T> extends AbstractElasticsearchClient<T> {
 		return builder.build();
 	}
 
-	private void configureCustomSSL(Builder builder) {
+	private void configureCustomSSL(okhttp3.OkHttpClient.Builder builder) {
 		try {
 			// Create the trust manager which can handle and validate our custom certificate chains
 			X509TrustManager trustManager = TrustManagerUtil.create(certPath, caPath);
@@ -99,12 +107,7 @@ public class ElasticsearchOkClient<T> extends AbstractElasticsearchClient<T> {
 			builder.followRedirects(true);
 			builder.sslSocketFactory(sslSocketFactory, trustManager);
 			if (!isVerifyHostnames()) {
-				builder.hostnameVerifier(new HostnameVerifier() {
-					@Override
-					public boolean verify(String hostname, SSLSession session) {
-						return true;
-					}
-				});
+				builder.hostnameVerifier((hostname, session) -> true);
 			}
 		} catch (Exception e) {
 			throw new RuntimeException("Error while configuring SSL options", e);
@@ -209,7 +212,7 @@ public class ElasticsearchOkClient<T> extends AbstractElasticsearchClient<T> {
 		});
 	}
 
-	public static class ElasticsearchOkClientBuilder<T> {
+	public static class Builder<T> {
 
 		private String scheme = "http";
 		private String hostname = "localhost";
@@ -219,92 +222,155 @@ public class ElasticsearchOkClient<T> extends AbstractElasticsearchClient<T> {
 		private int readTimeoutMs = 10_000;
 		private int writeTimeoutMs = 10_000;
 
-		private String certPath;
-		private String caPath;
+		private String certPath = null;
+		private String caPath = null;
 
 		private Function<String, T> converter;
 
-		private String username;
-		private String password;
+		private String username = null;
+		private String password = null;
+		boolean verifyHostnames = true;
 
+		/**
+		 * Verify the builder and build the client.
+		 * 
+		 * @return
+		 */
 		public ElasticsearchOkClient<T> build() {
-			ElasticsearchOkClient<T> client = new ElasticsearchOkClient<>(scheme, hostname, port);
-			if (username != null) {
-				client.setLogin(username, password);
-			}
-
-			client.setConnectTimeoutMs(connectTimeoutMs);
-			client.setReadTimeoutMs(readTimeoutMs);
-			client.setWriteTimeoutMs(writeTimeoutMs);
-
-			if (certPath != null) {
-				client.setCert(certPath);
-			}
-			if (caPath != null) {
-				client.setCA(caPath);
-			}
-
-			if (converter != null) {
-				client.setConverterFunction(converter);
-			}
+			ElasticsearchOkClient<T> client = new ElasticsearchOkClient<>(scheme, hostname, port,
+				username, password,
+				certPath, caPath,
+				connectTimeoutMs, readTimeoutMs, writeTimeoutMs,
+				verifyHostnames, converter);
+			Objects.requireNonNull(converter, "A converter function has to be specified.");
+			Objects.requireNonNull(scheme, "A protocol scheme has to be specified.");
+			Objects.requireNonNull(hostname, "A hostname has to be specified.");
 			client.init();
 			return client;
 		}
 
-		public ElasticsearchOkClientBuilder<T> setScheme(String scheme) {
+		/**
+		 * Set the protocol scheme to be used for the client (e.g.: http, https).
+		 * 
+		 * @param scheme
+		 * @return Fluent API
+		 */
+		public Builder<T> setScheme(String scheme) {
 			this.scheme = scheme;
 			return this;
 		}
 
-		public ElasticsearchOkClientBuilder<T> setHostname(String hostname) {
+		/**
+		 * Set the hostname for the client.
+		 * 
+		 * @param hostname
+		 * @return Fluent API
+		 */
+		public Builder<T> setHostname(String hostname) {
 			this.hostname = hostname;
 			return this;
 		}
 
-		public ElasticsearchOkClientBuilder<T> setPort(int port) {
+		/**
+		 * Set the port to connect to. (e.g. 9200).
+		 * 
+		 * @param port
+		 * @return Fluent API
+		 */
+		public Builder<T> setPort(int port) {
 			this.port = port;
 			return this;
 		}
 
-		public ElasticsearchOkClientBuilder<T> setLogin(String username, String password) {
+		/**
+		 * Set the login data to be used for authentication.
+		 * 
+		 * @param username
+		 * @param password
+		 * @return Fluent API
+		 */
+		public Builder<T> setLogin(String username, String password) {
 			this.username = username;
 			this.password = password;
 			return this;
 		}
 
-		public ElasticsearchOkClientBuilder<T> setConnectTimeoutMs(int connectTimeoutMs) {
+		/**
+		 * Set connection timeout in milliseconds.
+		 * 
+		 * @param connectTimeoutMs
+		 * @return Fluent API
+		 */
+		public Builder<T> setConnectTimeoutMs(int connectTimeoutMs) {
 			this.connectTimeoutMs = connectTimeoutMs;
 			return this;
 		}
 
-		public ElasticsearchOkClientBuilder<T> setReadTimeoutMs(int readTimeoutMs) {
+		/**
+		 * Set read timeout for the client.
+		 * 
+		 * @param readTimeoutMs
+		 * @return Fluent API
+		 */
+		public Builder<T> setReadTimeoutMs(int readTimeoutMs) {
 			this.readTimeoutMs = readTimeoutMs;
 			return this;
 		}
 
-		public ElasticsearchOkClientBuilder<T> setWriteTimeoutMs(int writeTimeoutMs) {
+		/**
+		 * Set write timeout for the client.
+		 * 
+		 * @param writeTimeoutMs
+		 * @return Fluent API
+		 */
+		public Builder<T> setWriteTimeoutMs(int writeTimeoutMs) {
 			this.writeTimeoutMs = writeTimeoutMs;
 			return this;
 		}
 
-		public ElasticsearchOkClientBuilder<T> setCertPath(String path) {
+		/**
+		 * Set the path to the server certificate which should be trusted.
+		 * 
+		 * @param path
+		 * @return Fluent API
+		 */
+		public Builder<T> setCertPath(String path) {
 			this.certPath = path;
 			return this;
 		}
 
-		public ElasticsearchOkClientBuilder<T> setCaPath(String caPath) {
+		/**
+		 * Set the path the Common Authority certificate which should be trusted.
+		 * 
+		 * @param caPath
+		 * @return Fluent API
+		 */
+		public Builder<T> setCaPath(String caPath) {
 			this.caPath = caPath;
 			return this;
 		}
 
-		public ElasticsearchOkClientBuilder<T> setConverterFunction(Function<String, T> converter) {
+		/**
+		 * Set the converter function used to transform the server response to T.
+		 * 
+		 * @param converter
+		 * @return Fluent API
+		 */
+		public Builder<T> setConverterFunction(Function<String, T> converter) {
 			this.converter = converter;
 			return this;
 		}
-	}
 
-	public static <T> ElasticsearchOkClientBuilder<T> builder() {
-		return new ElasticsearchOkClientBuilder<T>();
+		/**
+		 * Control hostname verification for SSL connections.
+		 * 
+		 * @param verifyHostnames
+		 * @return Fluent API
+		 */
+		public Builder<T> setVerifyHostnames(boolean verifyHostnames) {
+			this.verifyHostnames = verifyHostnames;
+			return this;
+		}
 	}
 
 }

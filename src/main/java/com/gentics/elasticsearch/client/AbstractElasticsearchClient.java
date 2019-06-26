@@ -1,6 +1,5 @@
 package com.gentics.elasticsearch.client;
 
-import java.util.Objects;
 import java.util.function.Function;
 
 /**
@@ -9,37 +8,56 @@ import java.util.function.Function;
  */
 public abstract class AbstractElasticsearchClient<T> implements ElasticsearchClient<T> {
 
-	protected int port;
-	protected String hostname;
-	protected String scheme;
-	protected String username;
-	protected String password;
+	protected final String scheme;
+	protected final String hostname;
+	protected final int port;
 
-	protected String certPath;
-	protected String keyPath;
-	protected String caPath;
+	protected final String username;
+	protected final String password;
 
-	protected int connectTimeoutMs = 10_000;
-	protected int readTimeoutMs = 10_000;
-	protected int writeTimeoutMs = 10_000;
+	protected final String certPath;
+	protected final String caPath;
 
-	protected Function<String, T> parser;
-	private boolean verifyHostnames;
+	protected final int connectTimeoutMs;
+	protected final int readTimeoutMs;
+	protected final int writeTimeoutMs;
 
-	public AbstractElasticsearchClient(String scheme, String hostname, int port) {
-		this.scheme = scheme;
-		this.port = port;
-		this.hostname = hostname;
-	}
+	protected final boolean verifyHostnames;
+	protected final Function<String, T> parser;
 
 	/**
-	 * Set the converter which will be used transform the response body to T.
 	 * 
+	 * @param scheme
+	 * @param hostname
+	 * @param port
+	 * @param username
+	 * @param password
+	 * @param certPath
+	 * @param caPath
+	 * @param connectTimeoutMs
+	 * @param readTimeoutMs
+	 * @param writeTimeoutMs
+	 * @param verifyHostnames
+	 *            Whether hostnames should be verified for SSL
 	 * @param parser
-	 *            Parser function for input strings
+	 *            Set the converter which will be used transform the response body to T
 	 */
-	@Override
-	public void setConverterFunction(Function<String, T> parser) {
+	protected AbstractElasticsearchClient(String scheme, String hostname, int port, String username, String password, String certPath, String caPath,
+		int connectTimeoutMs, int readTimeoutMs, int writeTimeoutMs, boolean verifyHostnames, Function<String, T> parser) {
+		this.scheme = scheme;
+		this.hostname = hostname;
+		this.port = port;
+		this.username = username;
+		this.password = password;
+
+		this.certPath = certPath;
+		this.caPath = caPath;
+
+		this.connectTimeoutMs = connectTimeoutMs;
+		this.readTimeoutMs = readTimeoutMs;
+		this.writeTimeoutMs = writeTimeoutMs;
+
+		this.verifyHostnames = verifyHostnames;
 		this.parser = parser;
 	}
 
@@ -59,14 +77,6 @@ public abstract class AbstractElasticsearchClient<T> implements ElasticsearchCli
 	}
 
 	@Override
-	public void setLogin(String username, String password) {
-		Objects.requireNonNull(username, "Username must not be null");
-		Objects.requireNonNull(password, "Password must not be null");
-		this.username = username;
-		this.password = password;
-	}
-
-	@Override
 	public String getUsername() {
 		return username;
 	}
@@ -82,43 +92,8 @@ public abstract class AbstractElasticsearchClient<T> implements ElasticsearchCli
 	}
 
 	@Override
-	public void setCert(String path) {
-		this.certPath = path;
-	}
-
-	@Override
-	public void setKey(String path) {
-		this.keyPath = path;
-	}
-
-	@Override
-	public void setCA(String path) {
-		this.caPath = path;
-	}
-
-	@Override
-	public void setVerifyHostnames(boolean flag) {
-		this.verifyHostnames = flag;
-	}
-
-	@Override
 	public boolean isVerifyHostnames() {
 		return verifyHostnames;
-	}
-
-	@Override
-	public void setConnectTimeoutMs(int connectTimeoutMs) {
-		this.connectTimeoutMs = connectTimeoutMs;
-	}
-
-	@Override
-	public void setReadTimeoutMs(int readTimeoutMs) {
-		this.readTimeoutMs = readTimeoutMs;
-	}
-
-	@Override
-	public void setWriteTimeoutMs(int writeTimeoutMs) {
-		this.writeTimeoutMs = writeTimeoutMs;
 	}
 
 }
