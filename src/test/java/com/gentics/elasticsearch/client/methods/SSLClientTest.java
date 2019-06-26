@@ -1,6 +1,7 @@
 package com.gentics.elasticsearch.client.methods;
 
 import java.io.File;
+import java.time.Duration;
 
 import org.junit.ClassRule;
 import org.junit.Test;
@@ -23,6 +24,7 @@ public class SSLClientTest {
 		ElasticsearchOkClient<JsonObject> client = new ElasticsearchOkClient.Builder<JsonObject>()
 			.setLogin("elastic", password)
 			.setScheme("https")
+			.setConnectTimeout(Duration.ofMillis(8_000))
 			.setHostname(elasticsearch.getContainerIpAddress())
 			.setPort(elasticsearch.getMappedPort(9200))
 			.setCertPath(certDir + "/elastic-certificates.crt.pem")

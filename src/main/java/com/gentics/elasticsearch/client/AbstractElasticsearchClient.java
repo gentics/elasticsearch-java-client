@@ -1,5 +1,6 @@
 package com.gentics.elasticsearch.client;
 
+import java.time.Duration;
 import java.util.function.Function;
 
 /**
@@ -18,9 +19,9 @@ public abstract class AbstractElasticsearchClient<T> implements ElasticsearchCli
 	protected final String certPath;
 	protected final String caPath;
 
-	protected final int connectTimeoutMs;
-	protected final int readTimeoutMs;
-	protected final int writeTimeoutMs;
+	protected final Duration connectTimeout;
+	protected final Duration readTimeout;
+	protected final Duration writeTimeout;
 
 	protected final boolean verifyHostnames;
 	protected final Function<String, T> parser;
@@ -34,16 +35,16 @@ public abstract class AbstractElasticsearchClient<T> implements ElasticsearchCli
 	 * @param password
 	 * @param certPath
 	 * @param caPath
-	 * @param connectTimeoutMs
-	 * @param readTimeoutMs
-	 * @param writeTimeoutMs
+	 * @param connectTimeout
+	 * @param readTimeout
+	 * @param writeTimeout
 	 * @param verifyHostnames
 	 *            Whether hostnames should be verified for SSL
 	 * @param parser
 	 *            Set the converter which will be used transform the response body to T
 	 */
 	protected AbstractElasticsearchClient(String scheme, String hostname, int port, String username, String password, String certPath, String caPath,
-		int connectTimeoutMs, int readTimeoutMs, int writeTimeoutMs, boolean verifyHostnames, Function<String, T> parser) {
+		Duration connectTimeout, Duration readTimeout, Duration writeTimeout, boolean verifyHostnames, Function<String, T> parser) {
 		this.scheme = scheme;
 		this.hostname = hostname;
 		this.port = port;
@@ -53,9 +54,9 @@ public abstract class AbstractElasticsearchClient<T> implements ElasticsearchCli
 		this.certPath = certPath;
 		this.caPath = caPath;
 
-		this.connectTimeoutMs = connectTimeoutMs;
-		this.readTimeoutMs = readTimeoutMs;
-		this.writeTimeoutMs = writeTimeoutMs;
+		this.connectTimeout = connectTimeout;
+		this.readTimeout = readTimeout;
+		this.writeTimeout = writeTimeout;
 
 		this.verifyHostnames = verifyHostnames;
 		this.parser = parser;
@@ -84,6 +85,31 @@ public abstract class AbstractElasticsearchClient<T> implements ElasticsearchCli
 	@Override
 	public String getPassword() {
 		return password;
+	}
+
+	@Override
+	public Duration getConnectTimeout() {
+		return connectTimeout;
+	}
+
+	@Override
+	public Duration getReadTimeout() {
+		return readTimeout;
+	}
+
+	@Override
+	public Duration getWriteTimeout() {
+		return writeTimeout;
+	}
+
+	@Override
+	public String getCaPath() {
+		return caPath;
+	}
+
+	@Override
+	public String getCertPath() {
+		return certPath;
 	}
 
 	@Override

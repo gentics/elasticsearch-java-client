@@ -1,5 +1,7 @@
 package com.gentics.elasticsearch.client;
 
+import java.time.Duration;
+
 import com.gentics.elasticsearch.client.methods.ClusterMethods;
 import com.gentics.elasticsearch.client.methods.DocumentMethods;
 import com.gentics.elasticsearch.client.methods.IndexMethods;
@@ -68,5 +70,40 @@ public interface ElasticsearchClient<T> extends
 	 * @return
 	 */
 	boolean isVerifyHostnames();
+
+	/**
+	 * Return the configured connect timeout.
+	 * 
+	 * @return
+	 */
+	Duration getConnectTimeout();
+
+	/**
+	 * Return the configured read timeout.
+	 * 
+	 * @return
+	 */
+	Duration getReadTimeout();
+
+	/**
+	 * Return the configured write timeout.
+	 * 
+	 * @return
+	 */
+	Duration getWriteTimeout();
+
+	/**
+	 * Return the path to the common authority certificate.
+	 * 
+	 * @return
+	 */
+	String getCaPath();
+
+	/**
+	 * Return the cert path.
+	 * 
+	 * @return
+	 */
+	String getCertPath();
 
 }

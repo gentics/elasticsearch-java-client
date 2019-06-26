@@ -1,13 +1,12 @@
 package com.gentics.elasticsearch.client.okhttp;
 
 import java.io.IOException;
+import java.time.Duration;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 
-import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.SSLContext;
-import javax.net.ssl.SSLSession;
 import javax.net.ssl.SSLSocketFactory;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
@@ -47,15 +46,15 @@ public class ElasticsearchOkClient<T> extends AbstractElasticsearchClient<T> {
 	 * @param password
 	 * @param certPath
 	 * @param caPath
-	 * @param connectTimeoutMs
-	 * @param readTimeoutMs
-	 * @param writeTimeoutMs
+	 * @param connectTimeout
+	 * @param readTimeout
+	 * @param writeTimeout
 	 * @param verifyHostnames
 	 * @param parser
 	 */
 	protected ElasticsearchOkClient(String scheme, String hostname, int port, String username, String password, String certPath, String caPath,
-		int connectTimeoutMs, int readTimeoutMs, int writeTimeoutMs, boolean verifyHostnames, Function<String, T> parser) {
-		super(scheme, hostname, port, username, password, certPath, caPath, connectTimeoutMs, readTimeoutMs, writeTimeoutMs, verifyHostnames, parser);
+		Duration connectTimeout, Duration readTimeout, Duration writeTimeout, boolean verifyHostnames, Function<String, T> parser) {
+		super(scheme, hostname, port, username, password, certPath, caPath, connectTimeout, readTimeout, writeTimeout, verifyHostnames, parser);
 	}
 
 	public void init() {
@@ -66,9 +65,9 @@ public class ElasticsearchOkClient<T> extends AbstractElasticsearchClient<T> {
 		okhttp3.OkHttpClient.Builder builder = new OkHttpClient.Builder();
 
 		builder.addInterceptor(chain -> {
-			chain.withConnectTimeout(connectTimeoutMs, TimeUnit.MILLISECONDS);
-			chain.withReadTimeout(readTimeoutMs, TimeUnit.MILLISECONDS);
-			chain.withWriteTimeout(writeTimeoutMs, TimeUnit.MILLISECONDS);
+			chain.withConnectTimeout(Math.toIntExact(connectTimeout.toMillis()), TimeUnit.MILLISECONDS);
+			chain.withReadTimeout(Math.toIntExact(readTimeout.toMillis()), TimeUnit.MILLISECONDS);
+			chain.withWriteTimeout(Math.toIntExact(writeTimeout.toMillis()), TimeUnit.MILLISECONDS);
 			return chain.proceed(chain.request());
 		});
 
@@ -218,9 +217,9 @@ public class ElasticsearchOkClient<T> extends AbstractElasticsearchClient<T> {
 		private String hostname = "localhost";
 		private int port = 9200;
 
-		private int connectTimeoutMs = 10_000;
-		private int readTimeoutMs = 10_000;
-		private int writeTimeoutMs = 10_000;
+		private Duration connectTimeout = Duration.ofMillis(10_000);
+		private Duration readTimeout = Duration.ofMillis(10_000);
+		private Duration writeTimeout = Duration.ofMillis(10_000);
 
 		private String certPath = null;
 		private String caPath = null;
@@ -237,14 +236,15 @@ public class ElasticsearchOkClient<T> extends AbstractElasticsearchClient<T> {
 		 * @return
 		 */
 		public ElasticsearchOkClient<T> build() {
+			Objects.requireNonNull(scheme, "A protocol scheme has to be specified.");
+			Objects.requireNonNull(hostname, "A hostname has to be specified.");
+			Objects.requireNonNull(converter, "A converter function has to be specified.");
+
 			ElasticsearchOkClient<T> client = new ElasticsearchOkClient<>(scheme, hostname, port,
 				username, password,
 				certPath, caPath,
-				connectTimeoutMs, readTimeoutMs, writeTimeoutMs,
+				connectTimeout, readTimeout, writeTimeout,
 				verifyHostnames, converter);
-			Objects.requireNonNull(converter, "A converter function has to be specified.");
-			Objects.requireNonNull(scheme, "A protocol scheme has to be specified.");
-			Objects.requireNonNull(hostname, "A hostname has to be specified.");
 			client.init();
 			return client;
 		}
@@ -296,35 +296,35 @@ public class ElasticsearchOkClient<T> extends AbstractElasticsearchClient<T> {
 		}
 
 		/**
-		 * Set connection timeout in milliseconds.
+		 * Set connection timeout.
 		 * 
-		 * @param connectTimeoutMs
+		 * @param connectTimeout
 		 * @return Fluent API
 		 */
-		public Builder<T> setConnectTimeoutMs(int connectTimeoutMs) {
-			this.connectTimeoutMs = connectTimeoutMs;
+		public Builder<T> setConnectTimeout(Duration connectTimeout) {
+			this.connectTimeout = connectTimeout;
 			return this;
 		}
 
 		/**
 		 * Set read timeout for the client.
 		 * 
-		 * @param readTimeoutMs
+		 * @param readTimeout
 		 * @return Fluent API
 		 */
-		public Builder<T> setReadTimeoutMs(int readTimeoutMs) {
-			this.readTimeoutMs = readTimeoutMs;
+		public Builder<T> setReadTimeout(Duration readTimeout) {
+			this.readTimeout = readTimeout;
 			return this;
 		}
 
 		/**
 		 * Set write timeout for the client.
 		 * 
-		 * @param writeTimeoutMs
+		 * @param writeTimeout
 		 * @return Fluent API
 		 */
-		public Builder<T> setWriteTimeoutMs(int writeTimeoutMs) {
-			this.writeTimeoutMs = writeTimeoutMs;
+		public Builder<T> setWriteTimeout(Duration writeTimeout) {
+			this.writeTimeout = writeTimeout;
 			return this;
 		}
 
