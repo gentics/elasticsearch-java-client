@@ -1,8 +1,15 @@
 package com.gentics.elasticsearch.client.okhttp;
 
 import java.io.IOException;
+import java.time.Duration;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Function;
+
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLSocketFactory;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.X509TrustManager;
 
 import com.gentics.elasticsearch.client.AbstractElasticsearchClient;
 import com.gentics.elasticsearch.client.HttpErrorException;
@@ -23,52 +30,51 @@ import okhttp3.ResponseBody;
  */
 public class ElasticsearchOkClient<T> extends AbstractElasticsearchClient<T> {
 
-	private final OkHttpClient client;
+	public static <T> Builder<T> builder() {
+		return new Builder<T>();
+	}
+
+	private OkHttpClient client;
 
 	/**
 	 * Create a new client with a default timeout of 10s for all timeouts (connect, read and write).
 	 * 
 	 * @param scheme
-	 *            Protocol scheme
 	 * @param hostname
-	 *            Server hostname
 	 * @param port
-	 *            Server port
+	 * @param username
+	 * @param password
+	 * @param certPath
+	 * @param caPath
+	 * @param connectTimeout
+	 * @param readTimeout
+	 * @param writeTimeout
+	 * @param verifyHostnames
+	 * @param parser
 	 */
-	public ElasticsearchOkClient(String scheme, String hostname, int port) {
-		this(scheme, hostname, port, 10_000, 10_000, 10_000);
+	protected ElasticsearchOkClient(String scheme, String hostname, int port, String username, String password, String certPath, String caPath,
+		Duration connectTimeout, Duration readTimeout, Duration writeTimeout, boolean verifyHostnames, Function<String, T> parser) {
+		super(scheme, hostname, port, username, password, certPath, caPath, connectTimeout, readTimeout, writeTimeout, verifyHostnames, parser);
 	}
 
-	/**
-	 * Create a new client with timeouts to connect, read and write to the server in milliseconds.
-	 *
-	 * @param scheme
-	 *            Protocol scheme
-	 * @param hostname
-	 *            Server hostname
-	 * @param port
-	 *            Server port
-	 * @param connectTimeoutMs
-	 * 			  The timeout to connect to the server in milliseconds
-	 * @param readTimeoutMs
-	 *            The timeout to receive data from the server in milliseconds
-	 * @param writeTimeoutMs
-	 *            The timeout to send data to the server in milliseconds
-	 */
-	public ElasticsearchOkClient(String scheme, String hostname, int port, int connectTimeoutMs, int readTimeoutMs, int writeTimeoutMs) {
-		super(scheme, hostname, port);
-		this.client = createClient(connectTimeoutMs, readTimeoutMs, writeTimeoutMs);
+	public void init() {
+		this.client = createClient();
 	}
 
-	private OkHttpClient createClient(int connectTimeoutMs, int readTimeoutMs, int writeTimeoutMs) {
+	private OkHttpClient createClient() {
 		okhttp3.OkHttpClient.Builder builder = new OkHttpClient.Builder();
 
 		builder.addInterceptor(chain -> {
-			chain.withConnectTimeout(connectTimeoutMs, TimeUnit.MILLISECONDS);
-			chain.withReadTimeout(readTimeoutMs, TimeUnit.MILLISECONDS);
-			chain.withWriteTimeout(writeTimeoutMs, TimeUnit.MILLISECONDS);
+			chain.withConnectTimeout(Math.toIntExact(connectTimeout.toMillis()), TimeUnit.MILLISECONDS);
+			chain.withReadTimeout(Math.toIntExact(readTimeout.toMillis()), TimeUnit.MILLISECONDS);
+			chain.withWriteTimeout(Math.toIntExact(writeTimeout.toMillis()), TimeUnit.MILLISECONDS);
 			return chain.proceed(chain.request());
 		});
+
+		// Check whether custom certificate chain has been set
+		if (certPath != null && caPath != null) {
+			configureCustomSSL(builder);
+		}
 
 		// Disable gzip
 		builder.addInterceptor(chain -> {
@@ -83,6 +89,29 @@ public class ElasticsearchOkClient<T> extends AbstractElasticsearchClient<T> {
 			return chain.proceed(newRequest);
 		});
 		return builder.build();
+	}
+
+	private void configureCustomSSL(okhttp3.OkHttpClient.Builder builder) {
+		try {
+			// Create the trust manager which can handle and validate our custom certificate chains
+			X509TrustManager trustManager = TrustManagerUtil.create(certPath, caPath);
+			TrustManager[] trustManagers = new TrustManager[] { trustManager };
+
+			// Install the custom trust manager
+			SSLContext sslContext = SSLContext.getInstance("TLS");
+			sslContext.init(null, trustManagers, new java.security.SecureRandom());
+
+			// Create an SSL socket factory with our managers
+			SSLSocketFactory sslSocketFactory = sslContext.getSocketFactory();
+			builder.followRedirects(true);
+			builder.sslSocketFactory(sslSocketFactory, trustManager);
+			if (!isVerifyHostnames()) {
+				builder.hostnameVerifier((hostname, session) -> true);
+			}
+		} catch (Exception e) {
+			throw new RuntimeException("Error while configuring SSL options", e);
+		}
+
 	}
 
 	/**
@@ -182,6 +211,166 @@ public class ElasticsearchOkClient<T> extends AbstractElasticsearchClient<T> {
 		});
 	}
 
+	public static class Builder<T> {
 
+		private String scheme = "http";
+		private String hostname = "localhost";
+		private int port = 9200;
+
+		private Duration connectTimeout = Duration.ofMillis(10_000);
+		private Duration readTimeout = Duration.ofMillis(10_000);
+		private Duration writeTimeout = Duration.ofMillis(10_000);
+
+		private String certPath = null;
+		private String caPath = null;
+
+		private Function<String, T> converter;
+
+		private String username = null;
+		private String password = null;
+		boolean verifyHostnames = true;
+
+		/**
+		 * Verify the builder and build the client.
+		 * 
+		 * @return
+		 */
+		public ElasticsearchOkClient<T> build() {
+			Objects.requireNonNull(scheme, "A protocol scheme has to be specified.");
+			Objects.requireNonNull(hostname, "A hostname has to be specified.");
+			Objects.requireNonNull(converter, "A converter function has to be specified.");
+
+			ElasticsearchOkClient<T> client = new ElasticsearchOkClient<>(scheme, hostname, port,
+				username, password,
+				certPath, caPath,
+				connectTimeout, readTimeout, writeTimeout,
+				verifyHostnames, converter);
+			client.init();
+			return client;
+		}
+
+		/**
+		 * Set the protocol scheme to be used for the client (e.g.: http, https).
+		 * 
+		 * @param scheme
+		 * @return Fluent API
+		 */
+		public Builder<T> setScheme(String scheme) {
+			this.scheme = scheme;
+			return this;
+		}
+
+		/**
+		 * Set the hostname for the client.
+		 * 
+		 * @param hostname
+		 * @return Fluent API
+		 */
+		public Builder<T> setHostname(String hostname) {
+			this.hostname = hostname;
+			return this;
+		}
+
+		/**
+		 * Set the port to connect to. (e.g. 9200).
+		 * 
+		 * @param port
+		 * @return Fluent API
+		 */
+		public Builder<T> setPort(int port) {
+			this.port = port;
+			return this;
+		}
+
+		/**
+		 * Set the login data to be used for authentication.
+		 * 
+		 * @param username
+		 * @param password
+		 * @return Fluent API
+		 */
+		public Builder<T> setLogin(String username, String password) {
+			this.username = username;
+			this.password = password;
+			return this;
+		}
+
+		/**
+		 * Set connection timeout.
+		 * 
+		 * @param connectTimeout
+		 * @return Fluent API
+		 */
+		public Builder<T> setConnectTimeout(Duration connectTimeout) {
+			this.connectTimeout = connectTimeout;
+			return this;
+		}
+
+		/**
+		 * Set read timeout for the client.
+		 * 
+		 * @param readTimeout
+		 * @return Fluent API
+		 */
+		public Builder<T> setReadTimeout(Duration readTimeout) {
+			this.readTimeout = readTimeout;
+			return this;
+		}
+
+		/**
+		 * Set write timeout for the client.
+		 * 
+		 * @param writeTimeout
+		 * @return Fluent API
+		 */
+		public Builder<T> setWriteTimeout(Duration writeTimeout) {
+			this.writeTimeout = writeTimeout;
+			return this;
+		}
+
+		/**
+		 * Set the path to the server certificate which should be trusted.
+		 * 
+		 * @param path
+		 * @return Fluent API
+		 */
+		public Builder<T> setCertPath(String path) {
+			this.certPath = path;
+			return this;
+		}
+
+		/**
+		 * Set the path the Common Authority certificate which should be trusted.
+		 * 
+		 * @param caPath
+		 * @return Fluent API
+		 */
+		public Builder<T> setCaPath(String caPath) {
+			this.caPath = caPath;
+			return this;
+		}
+
+		/**
+		 * Set the converter function used to transform the server response to T.
+		 * 
+		 * @param converter
+		 * @return Fluent API
+		 */
+		public Builder<T> setConverterFunction(Function<String, T> converter) {
+			this.converter = converter;
+			return this;
+		}
+
+		/**
+		 * Control hostname verification for SSL connections.
+		 * 
+		 * @param verifyHostnames
+		 * @return Fluent API
+		 */
+		public Builder<T> setVerifyHostnames(boolean verifyHostnames) {
+			this.verifyHostnames = verifyHostnames;
+			return this;
+		}
+	}
 
 }
