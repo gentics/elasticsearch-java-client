@@ -147,12 +147,12 @@
 		<repository>
 			<id>lan.releases</id>
 			<name>Gentics Releases Repository</name>
-			<url>https://repo-test.gentics.com/artifactory/lan.releases</url>
+			<url>https://repo-internal.apa-it.at/artifactory/gtx-maven-releases</url>
 		</repository>
 		<snapshotRepository>
 			<id>lan.snapshots</id>
 			<name>Gentics Snapshots Repository</name>
-			<url>https://repo.gentics.com/artifactory/lan.snapshots</url>
+			<url>https://repo-internal.apa-it.at/artifactory/gtx-maven-snapshots</url>
 		</snapshotRepository>
 	</distributionManagement>
 </project>
