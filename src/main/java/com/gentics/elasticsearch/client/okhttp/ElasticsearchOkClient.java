@@ -63,13 +63,9 @@ public class ElasticsearchOkClient<T> extends AbstractElasticsearchClient<T> {
 
 	private OkHttpClient createClient() {
 		okhttp3.OkHttpClient.Builder builder = new OkHttpClient.Builder();
-
-		builder.addInterceptor(chain -> {
-			chain.withConnectTimeout(Math.toIntExact(connectTimeout.toMillis()), TimeUnit.MILLISECONDS);
-			chain.withReadTimeout(Math.toIntExact(readTimeout.toMillis()), TimeUnit.MILLISECONDS);
-			chain.withWriteTimeout(Math.toIntExact(writeTimeout.toMillis()), TimeUnit.MILLISECONDS);
-			return chain.proceed(chain.request());
-		});
+		builder.connectTimeout(connectTimeout);
+		builder.readTimeout(readTimeout);
+		builder.writeTimeout(writeTimeout);
 
 		// Check whether custom certificate chain has been set
 		if (certPath != null && caPath != null) {
