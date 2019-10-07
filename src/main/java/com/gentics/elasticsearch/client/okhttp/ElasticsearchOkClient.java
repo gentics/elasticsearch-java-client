@@ -3,7 +3,6 @@ package com.gentics.elasticsearch.client.okhttp;
 import java.io.IOException;
 import java.time.Duration;
 import java.util.Objects;
-import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 
 import javax.net.ssl.SSLContext;
