@@ -36,10 +36,10 @@ public interface DocumentMethods<T> extends HTTPMethods<T> {
 	default RequestBuilder<T> storeDocument(String indexName, String type, String id, T json) {
 		Objects.requireNonNull("The indexName must be specified.", indexName);
 		Objects.requireNonNull("The document id must be specified.", id);
-		String path = indexName + "/" + id;
-		if (type != null) {
-			path = indexName + "/" + type + "/" + id;
+		if (type == null) {
+			type = "_doc";
 		}
+		String path = indexName + "/" + type + "/" + id;
 		return putBuilder(path, json);
 	}
 
@@ -75,10 +75,10 @@ public interface DocumentMethods<T> extends HTTPMethods<T> {
 	default RequestBuilder<T> getDocument(String indexName, String type, String id) {
 		Objects.requireNonNull("The indexName must be specified.", indexName);
 		Objects.requireNonNull("The document id must be specified.", id);
-		String path = indexName + "/" + id;
-		if (type != null) {
-			path = indexName + "/" + type + "/" + id;
+		if (type == null) {
+			type = "_doc";
 		}
+		String path = indexName + "/" + type + "/" + id;
 		return getBuilder(path);
 	}
 
@@ -104,10 +104,10 @@ public interface DocumentMethods<T> extends HTTPMethods<T> {
 	default RequestBuilder<T> deleteDocument(String indexName, String type, String id) {
 		Objects.requireNonNull("The indexName must be specified.", indexName);
 		Objects.requireNonNull("The document id must be specified.", id);
-		String path = indexName + "/" + id;
-		if (type != null) {
-			path = indexName + "/" + type + "/" + id;
+		if (type == null) {
+			type = "_doc";
 		}
+		String path = indexName + "/" + type + "/" + id;
 		return deleteBuilder(path);
 	}
 
@@ -139,10 +139,10 @@ public interface DocumentMethods<T> extends HTTPMethods<T> {
 	default RequestBuilder<T> updateDocument(String indexName, String type, String id, T doc) {
 		Objects.requireNonNull("The indexName must be specified.", indexName);
 		Objects.requireNonNull("The document id must be specified.", id);
-		String path = indexName + "/" + id + "/_update";
-		if (type != null) {
-			path = indexName + "/" + type + "/" + id + "/_update";
+		if (type == null) {
+			type = "_doc";
 		}
+		String path = indexName + "/" + type + "/" + id + "/_update";
 		return postBuilder(path, doc);
 	}
 
@@ -171,10 +171,10 @@ public interface DocumentMethods<T> extends HTTPMethods<T> {
 	default RequestBuilder<T> readDocument(String indexName, String type, String id) {
 		Objects.requireNonNull("The indexName must be specified.", indexName);
 		Objects.requireNonNull("The document id must be specified.", id);
-		String path = indexName + "/" + id;
-		if (type != null) {
-			path = indexName + "/" + type + "/" + id;
+		if (type == null) {
+			type = "_doc";
 		}
+		String path = indexName + "/" + type + "/" + id;
 		return getBuilder(path);
 	}
 
