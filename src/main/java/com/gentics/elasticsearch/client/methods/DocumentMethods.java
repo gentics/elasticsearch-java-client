@@ -178,4 +178,30 @@ public interface DocumentMethods<T> extends HTTPMethods<T> {
 		return getBuilder(path);
 	}
 
+	/**
+	 * Load multiple documents via a mget request.
+	 * 
+	 * @param request
+	 * @return
+	 */
+	default RequestBuilder<T> multiGet(T request) {
+		return multiGet(null, request);
+	}
+
+	/**
+	 * Load multiple documents via a mget request.
+	 * 
+	 * @param indexName
+	 * @param request
+	 * @return
+	 */
+	default RequestBuilder<T> multiGet(String indexName, T request) {
+		Objects.requireNonNull("The indexName must be specified.", indexName);
+		String path = "/_mget";
+		if (indexName != null) {
+			path = "/" + indexName + "/_mget";
+		}
+		return postBuilder(path, request);
+	}
+
 }
