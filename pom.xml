@@ -126,6 +126,7 @@
 				</executions>
 				<configuration>
 					<gpgArguments>
+						<arg>--no-tty</arg>
 						<arg>--batch</arg>
 					</gpgArguments>
 				</configuration>
