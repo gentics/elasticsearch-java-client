@@ -12,12 +12,13 @@
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<vertx.version>3.8.4</vertx.version>
 	</properties>
 
 	<parent>
 		<groupId>com.gentics</groupId>
 		<artifactId>maven-parent</artifactId>
-		<version>2.0.16</version>
+		<version>5.0.0</version>
 	</parent>
 
 	<organization>
@@ -76,7 +77,7 @@
 		<dependency>
 			<groupId>io.vertx</groupId>
 			<artifactId>vertx-core</artifactId>
-			<version>3.5.4</version>
+			<version>${vertx.version}</version>
 			<scope>test</scope>
 		</dependency>
 
@@ -107,6 +108,19 @@
 						<id>attach-sources</id>
 						<goals>
 							<goal>jar</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-gpg-plugin</artifactId>
+				<executions>
+					<execution>
+						<id>sign-artifacts</id>
+						<phase>verify</phase>
+						<goals>
+							<goal>sign</goal>
 						</goals>
 					</execution>
 				</executions>
