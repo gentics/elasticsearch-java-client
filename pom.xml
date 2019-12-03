@@ -128,8 +128,8 @@
 					<gpgArguments>
 						<arg>--no-tty</arg>
 						<arg>--batch</arg>
-					    <arg>--pinentry-mode</arg>
-                        <arg>loopback</arg>
+						<arg>--pinentry-mode</arg>
+						<arg>loopback</arg>
 					</gpgArguments>
 				</configuration>
 			</plugin>
