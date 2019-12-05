@@ -12,13 +12,13 @@
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<vertx.version>3.8.4.1</vertx.version>
+		<vertx.version>3.8.4</vertx.version>
 	</properties>
 
 	<parent>
 		<groupId>com.gentics</groupId>
 		<artifactId>maven-parent</artifactId>
-		<version>5.0.0</version>
+		<version>5.0.1</version>
 	</parent>
 
 	<organization>
