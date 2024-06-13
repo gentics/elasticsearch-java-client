@@ -77,11 +77,11 @@ public class ElasticsearchOkClient<T> extends AbstractElasticsearchClient<T> {
 			Request newRequest;
 			try {
 				newRequest = request.newBuilder().addHeader("Accept-Encoding", "identity").build();
+				return chain.proceed(newRequest);
 			} catch (Exception e) {
 				e.printStackTrace();
 				return chain.proceed(request);
 			}
-			return chain.proceed(newRequest);
 		});
 		return builder.build();
 	}
@@ -176,7 +176,7 @@ public class ElasticsearchOkClient<T> extends AbstractElasticsearchClient<T> {
 				@Override
 				public void onFailure(Call call, IOException e) {
 					// Don't call the onError twice. Cancelling will trigger another error.
-					if (!"Canceled".equals(e.getMessage())) {
+					if (!sub.isDisposed()) {
 						sub.onError(e);
 					}
 				}
