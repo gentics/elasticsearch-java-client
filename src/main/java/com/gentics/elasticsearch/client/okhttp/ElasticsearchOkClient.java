@@ -171,6 +171,7 @@ public class ElasticsearchOkClient<T> extends AbstractElasticsearchClient<T> {
 	public Single<T> executeAsync(Request request) {
 		return Single.create(sub -> {
 			Call call = client.newCall(request);
+			sub.setCancellable(call::cancel);
 			call.enqueue(new Callback() {
 				@Override
 				public void onFailure(Call call, IOException e) {
