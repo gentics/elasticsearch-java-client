@@ -171,13 +171,13 @@ public class ElasticsearchOkClient<T> extends AbstractElasticsearchClient<T> {
 	public Single<T> executeAsync(Request request) {
 		return Single.create(sub -> {
 			Call call = client.newCall(request);
-			sub.setCancellable(call::cancel);
 			call.enqueue(new Callback() {
 				@Override
 				public void onFailure(Call call, IOException e) {
-					// Don't call the onError twice. Cancelling will trigger another error.
+					// Don't call the onError twice. 
 					if (!sub.isDisposed()) {
-						sub.onError(e);
+						sub.onError(new IOException(String.format("I/O Error in %s %s : %s (%s)",
+								request.method().toUpperCase(), request.url(), e.getClass().getSimpleName(), e.getLocalizedMessage()), e));
 					}
 				}
 
