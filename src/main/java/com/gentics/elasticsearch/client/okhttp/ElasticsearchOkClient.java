@@ -177,7 +177,7 @@ public class ElasticsearchOkClient<T> extends AbstractElasticsearchClient<T> {
 				public void onFailure(Call call, IOException e) {
 					// Don't call the onError twice. 
 					if (!sub.isDisposed()) {
-						sub.onError(new IOException(String.format("I/O Error in %s %s : %s (%s)",
+						sub.onError(new IOException(String.format("I/O Error at ES access in %s %s : %s (%s)",
 								request.method().toUpperCase(), request.url(), e.getClass().getSimpleName(), e.getLocalizedMessage()), e));
 					}
 				}
