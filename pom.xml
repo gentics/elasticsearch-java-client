@@ -128,31 +128,16 @@
 		</plugins>
 	</build>
 
-
-	<repositories>
-		<repository>
-			<id>maven.gentics.com</id>
-			<name>Gentics Maven Repository</name>
-			<url>https://maven.gentics.com/maven2</url>
-			<releases>
-				<enabled>true</enabled>
-			</releases>
-			<snapshots>
-				<enabled>true</enabled>
-			</snapshots>
-		</repository>
-	</repositories>
-
 	<distributionManagement>
 		<repository>
-			<id>lan.releases</id>
-			<name>Gentics Releases Repository</name>
-			<url>https://repo-internal.apa-it.at/artifactory/gtx-maven-releases</url>
+			<id>gentics.nexus.releases-oss</id>
+			<name>Gentics Nexus OSS Maven Repository</name>
+			<url>https://repo.gentics.com/repository/maven-releases-oss/</url>
 		</repository>
 		<snapshotRepository>
-			<id>lan.snapshots</id>
+			<id>gentics.nexus.snapshots</id>
 			<name>Gentics Snapshots Repository</name>
-			<url>https://repo-internal.apa-it.at/artifactory/gtx-maven-snapshots</url>
+			<url>https://repo.gentics.com/repository/maven-snapshots/</url>
 		</snapshotRepository>
 	</distributionManagement>
 </project>
