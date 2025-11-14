@@ -2,7 +2,6 @@ package com.gentics.elasticsearch.client.methods;
 
 import static com.gentics.elasticsearch.client.ClientUtility.join;
 
-import com.gentics.elasticsearch.client.HttpErrorException;
 import com.gentics.elasticsearch.client.okhttp.RequestBuilder;
 
 /**
@@ -25,4 +24,13 @@ public interface ClusterMethods<T> extends HTTPMethods<T> {
 		return getBuilder(path);
 	}
 
+	/**
+	 * Update the cluster settings
+	 * 
+	 * @param settings
+	 * @return
+	 */
+	default RequestBuilder<T> settings(T settings) {
+		return putBuilder("_cluster/settings", settings);
+	}
 }

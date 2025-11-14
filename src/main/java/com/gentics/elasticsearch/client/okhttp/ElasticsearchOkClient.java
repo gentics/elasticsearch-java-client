@@ -3,6 +3,7 @@ package com.gentics.elasticsearch.client.okhttp;
 import java.io.IOException;
 import java.time.Duration;
 import java.util.Objects;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 
 import javax.net.ssl.SSLContext;
@@ -16,6 +17,7 @@ import com.gentics.elasticsearch.client.HttpErrorException;
 import io.reactivex.Single;
 import okhttp3.Call;
 import okhttp3.Callback;
+import okhttp3.Dispatcher;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
@@ -61,10 +63,15 @@ public class ElasticsearchOkClient<T> extends AbstractElasticsearchClient<T> {
 	}
 
 	private OkHttpClient createClient() {
+		Dispatcher dispatcher = new Dispatcher();
+		dispatcher.setMaxRequestsPerHost(64);
+
 		okhttp3.OkHttpClient.Builder builder = new OkHttpClient.Builder();
 		builder.connectTimeout(connectTimeout);
 		builder.readTimeout(readTimeout);
 		builder.writeTimeout(writeTimeout);
+		builder.callTimeout(connectTimeout.toMillis() + Math.max(readTimeout.toMillis(), writeTimeout.toMillis()), TimeUnit.MILLISECONDS);
+		builder.dispatcher(dispatcher);
 
 		// Check whether custom certificate chain has been set
 		if (certPath != null && caPath != null) {
@@ -77,11 +84,11 @@ public class ElasticsearchOkClient<T> extends AbstractElasticsearchClient<T> {
 			Request newRequest;
 			try {
 				newRequest = request.newBuilder().addHeader("Accept-Encoding", "identity").build();
+				return chain.proceed(newRequest);
 			} catch (Exception e) {
 				e.printStackTrace();
 				return chain.proceed(request);
 			}
-			return chain.proceed(newRequest);
 		});
 		return builder.build();
 	}
@@ -175,9 +182,12 @@ public class ElasticsearchOkClient<T> extends AbstractElasticsearchClient<T> {
 			call.enqueue(new Callback() {
 				@Override
 				public void onFailure(Call call, IOException e) {
-					// Don't call the onError twice. Cancelling will trigger another error.
-					if (!"Canceled".equals(e.getMessage())) {
-						sub.onError(e);
+					// Don't call the onError twice, but notify about multiple exceptions (should not occur often).
+					if (sub.isDisposed()) {
+						e.printStackTrace();
+					} else {
+						sub.onError(new IOException(String.format("I/O Error at ES access in %s %s : %s (%s)",
+								request.method().toUpperCase(), request.url(), e.getClass().getSimpleName(), e.getLocalizedMessage()), e));
 					}
 				}
 
